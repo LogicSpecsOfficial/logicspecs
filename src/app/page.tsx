@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase'
+// This tells the code: "Go up one level (..) then look in the lib folder"
+import { supabase } from '../lib/supabase'import { supabase } from '@/lib/supabase'
 
 export default async function HomePage() {
   // This is the "Fetch" – it asks Supabase for all data in the 'iPhones' table
