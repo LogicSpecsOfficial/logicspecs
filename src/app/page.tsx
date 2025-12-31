@@ -1,7 +1,4 @@
-// This tells the code: "Go up one level (..) then look in the lib folder"
-import { supabase } from '../lib/supabase'import { supabase } from '@/lib/supabase'
-
-export default async function HomePage() {
+import { supabase } from '../lib/supabase';
   // This is the "Fetch" – it asks Supabase for all data in the 'iPhones' table
   const { data: iPhones, error } = await supabase
     .from('iPhones')
