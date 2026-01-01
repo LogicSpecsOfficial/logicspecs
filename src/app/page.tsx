@@ -6,10 +6,9 @@ import Link from 'next/link';
 export default function FinderPage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('iPhone'); // Default to iPhone
+  const [category, setCategory] = useState('iPhone');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // 1. Apple-Style Categories
   const categories = ['iPhone', 'iPad', 'Mac'];
 
   useEffect(() => {
@@ -17,14 +16,11 @@ export default function FinderPage() {
       setLoading(true);
       setErrorMsg('');
       
-      // Map category name to DB Table Name EXACTLY
       const tableName = category === 'iPhone' ? 'iPhones' : 
                         category === 'iPad' ? 'iPads' : 
                         category === 'Mac' ? 'Macs' : null;
 
       if (!tableName) return;
-
-      console.log(`Fetching from table: ${tableName}...`);
 
       const { data, error } = await supabase
         .from(tableName)
@@ -36,7 +32,6 @@ export default function FinderPage() {
         setErrorMsg(error.message);
         setItems([]);
       } else {
-        console.log(`Success! Found ${data?.length} rows.`);
         setItems(data || []);
       }
       setLoading(false);
@@ -45,26 +40,31 @@ export default function FinderPage() {
   }, [category]);
 
   return (
-    <main className="min-h-screen pt-32 pb-40 px-6 max-w-[1600px] mx-auto">
+    <main className="min-h-screen pt-40 pb-40 px-6 max-w-[1600px] mx-auto font-sans">
       
-      {/* 1. HERO SECTION: Clean & Minimal */}
-      <header className="mb-20 text-center space-y-6">
-        <h1 className="text-6xl md:text-8xl font-semibold tracking-tighter text-[#1d1d1f]">
+      {/* 1. HERO SECTION */}
+      <header className="mb-24 text-center space-y-6">
+        <h1 className="text-7xl md:text-9xl font-semibold tracking-tighter text-apple-text">
           {category}.
         </h1>
-        <p className="text-xl text-[#86868b] font-medium max-w-2xl mx-auto">
-          Explore technical specifications, performance benchmarks, and detailed comparisons.
+        <p className="text-xl md:text-2xl text-apple-gray font-medium max-w-2xl mx-auto leading-relaxed">
+          The definitive technical database. <br/>
+          <span className="text-apple-blue">Updated for 2026.</span>
         </p>
       </header>
 
-      {/* 2. SEGMENTED CONTROLLER (The Switcher) */}
-      <div className="flex justify-center mb-16">
-        <div className="segmented-control inline-flex">
+      {/* 2. SEGMENTED CONTROL (Apple Settings Style) */}
+      <div className="flex justify-center mb-20">
+        <div className="inline-flex bg-[#E8E8ED] p-1.5 rounded-full relative">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`segment-btn ${category === cat ? 'active' : ''}`}
+              className={`px-8 py-2.5 text-[13px] font-semibold rounded-full transition-all duration-300 relative z-10 ${
+                category === cat 
+                  ? 'bg-white text-black shadow-sm' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
             >
               {cat}
             </button>
@@ -72,73 +72,79 @@ export default function FinderPage() {
         </div>
       </div>
 
-      {/* 3. DEBUGGER (Only shows if there is an error) */}
-      {errorMsg && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center mb-10 max-w-xl mx-auto border border-red-100">
-          <p className="font-bold">⚠️ Connection Error</p>
-          <p className="text-sm">{errorMsg}</p>
-          <p className="text-xs mt-2 text-red-400">Tip: Check if 'RLS Policies' are enabled in Supabase.</p>
-        </div>
-      )}
-
-      {/* 4. LOADING STATE (Skeleton) */}
+      {/* 3. LOADING SKELETON */}
       {loading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
            {[1,2,3,4].map(i => (
-             <div key={i} className="h-[400px] bg-gray-200 rounded-[2rem]"></div>
+             <div key={i} className="h-[450px] bg-gray-200/50 rounded-apple"></div>
            ))}
         </div>
       )}
 
-      {/* 5. THE BENTO GRID (Results) */}
+      {/* 4. THE BENTO GRID (High-End Cards) */}
       {!loading && items.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {items.map((item) => (
             <Link 
               href={`/device/${item.slug}`} 
               key={item.model_identifier || item.id}
-              className="bento-card group"
+              className="group relative bg-white rounded-apple p-10 h-[480px] flex flex-col justify-between overflow-hidden transition-all duration-500 hover:shadow-2xl hover:scale-[1.02]"
             >
-              <div className="z-10 relative">
-                <span className="bento-subtitle">{item.series}</span>
-                <h2 className="bento-title mt-2 group-hover:text-[#0071e3] transition-colors">{item.model_name}</h2>
+              {/* Card Content */}
+              <div className="relative z-10">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-apple-gray mb-3 block">
+                  {item.series}
+                </span>
+                <h2 className="text-4xl font-semibold tracking-tight text-apple-text leading-[1.1]">
+                  {item.model_name}
+                </h2>
                 
-                <div className="mt-8 space-y-3">
-                   {/* Conditional specs based on category */}
-                   <div className="flex justify-between text-sm border-b border-gray-100 pb-2">
-                      <span className="text-gray-400 font-medium">Chipset</span>
+                {/* Dynamic Specs */}
+                <div className="mt-10 space-y-4">
+                   <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                      <span className="text-gray-400 font-medium">Chip</span>
                       <span className="font-semibold">{item.chip_name}</span>
                    </div>
-                   {category === 'iPad' && (
-                     <div className="flex justify-between text-sm border-b border-gray-100 pb-2">
+                   
+                   {/* iPad Specific Logic */}
+                   {category === 'iPad' ? (
+                     <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
                         <span className="text-gray-400 font-medium">Pencil</span>
-                        <span className="font-semibold">{item.pencil_support || 'N/A'}</span>
+                        <span className="font-semibold text-apple-blue">{item.pencil_support ? 'Supported' : 'No'}</span>
+                     </div>
+                   ) : (
+                     <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                        <span className="text-gray-400 font-medium">Release</span>
+                        <span className="font-semibold">{item.release_date}</span>
                      </div>
                    )}
-                   <div className="flex justify-between text-sm border-b border-gray-100 pb-2">
-                      <span className="text-gray-400 font-medium">Release</span>
-                      <span className="font-semibold">{item.release_date}</span>
-                   </div>
                 </div>
               </div>
 
-              {/* Hover Interaction Element */}
-              <div className="mt-6 flex items-center gap-2 text-xs font-bold text-[#0071e3] opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                View Full Analysis <span className="text-lg">→</span>
+              {/* Hover Action */}
+              <div className="flex items-center gap-2 text-xs font-bold text-apple-blue opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-75">
+                View Deep Dive <span className="text-lg">→</span>
               </div>
               
-              {/* Background Glow */}
-              <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+              {/* Subtle Liquid Gradient Background */}
+              <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-blue-50/50 rounded-full blur-[80px] group-hover:bg-blue-100/60 transition-colors duration-1000"></div>
             </Link>
           ))}
         </div>
       )}
 
-      {/* 6. EMPTY STATE (If table works but has no data) */}
-      {!loading && items.length === 0 && !errorMsg && (
-        <div className="text-center py-20">
-           <h3 className="text-2xl font-bold text-gray-300">No devices found.</h3>
-           <p className="text-gray-400 mt-2">The table "{category}" appears to be empty in Supabase.</p>
+      {/* 5. ERROR / EMPTY STATE */}
+      {!loading && (items.length === 0 || errorMsg) && (
+        <div className="text-center py-32 border border-dashed border-gray-200 rounded-apple">
+           <h3 className="text-2xl font-bold text-gray-400">Database Empty</h3>
+           <p className="text-gray-400 mt-2 max-w-md mx-auto">
+             {errorMsg ? `Error: ${errorMsg}` : `No devices found in the '${category}' table.`}
+           </p>
+           {errorMsg && (
+             <p className="mt-4 text-xs bg-red-50 text-red-500 py-1 px-3 rounded-full inline-block">
+               Check Supabase RLS Policies
+             </p>
+           )}
         </div>
       )}
 

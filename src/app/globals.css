@@ -1,48 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --background: #F5F5F7; /* Apple's exact light gray */
-  --foreground: #1D1D1F; /* Apple's exact near-black */
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-bg: rgba(255, 255, 255, 0.65);
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  
+  /* Define our custom Apple colors in the v4 theme block */
+  --color-apple-bg: #fbfbfd;
+  --color-apple-text: #1d1d1f;
+  --color-apple-gray: #86868b;
+  --color-apple-blue: #0071e3;
+  
+  /* Define the "Squircle" radius */
+  --radius-apple: 2rem;
 }
 
-@layer base {
-  body {
-    @apply bg-[var(--background)] text-[var(--foreground)] antialiased;
-    /* This makes text look crisp like on a Mac */
-    -webkit-font-smoothing: antialiased; 
-    -moz-osx-font-smoothing: grayscale;
-  }
-}
-
-@layer components {
-  /* High-End Segmented Control */
-  .segmented-control {
-    @apply flex bg-[#E8E8ED] p-1 rounded-full relative overflow-hidden;
-  }
-  
-  .segment-btn {
-    @apply flex-1 py-2 px-6 text-[13px] font-semibold text-gray-500 rounded-full transition-all duration-300 relative z-10;
-  }
-  
-  .segment-btn.active {
-    @apply bg-white text-black shadow-sm;
-  }
-
-  /* The "Bento" Card Style */
-  .bento-card {
-    @apply bg-white rounded-[2rem] p-8 transition-all duration-500 border border-transparent hover:border-[#0071e3]/30 hover:shadow-2xl relative overflow-hidden flex flex-col justify-between h-[420px];
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-  }
-
-  .bento-title {
-    @apply text-3xl font-semibold tracking-tight text-[#1D1D1F];
-  }
-
-  .bento-subtitle {
-    @apply text-[11px] font-bold uppercase tracking-widest text-[#86868b] mb-2 block;
-  }
+/* Base styles to ensure the font looks premium */
+body {
+  background-color: var(--color-apple-bg);
+  color: var(--color-apple-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
