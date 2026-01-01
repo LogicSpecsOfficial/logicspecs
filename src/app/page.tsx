@@ -9,20 +9,27 @@ export default function FinderPage() {
   const [category, setCategory] = useState('iPhone');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Added 'Accessory' to the list
-  const categories = ['iPhone', 'iPad', 'Mac', 'Watch', 'Accessory'];
+  // THE FULL 8-CATEGORY ECOSYSTEM
+  const categories = [
+    'iPhone', 'iPad', 'Mac', 'Watch', 
+    'Spatial', 'Audio', 'Home', 'Accessory'
+  ];
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       setErrorMsg('');
       
-      // Map selection to Supabase Table Name
-      const tableName = category === 'iPhone' ? 'iPhones' : 
-                        category === 'iPad' ? 'iPads' : 
-                        category === 'Mac' ? 'Macs' : 
-                        category === 'Watch' ? 'Watches' :
-                        category === 'Accessory' ? 'Accessories' : null;
+      // Map Selection -> Database Table
+      const tableName = 
+        category === 'iPhone' ? 'iPhones' : 
+        category === 'iPad' ? 'iPads' : 
+        category === 'Mac' ? 'Macs' : 
+        category === 'Watch' ? 'Watches' :
+        category === 'Spatial' ? 'spatial_computers' :
+        category === 'Audio' ? 'audio_devices' :
+        category === 'Home' ? 'home_entertainment' :
+        category === 'Accessory' ? 'Accessories' : null;
 
       if (!tableName) return;
 
@@ -46,7 +53,7 @@ export default function FinderPage() {
   return (
     <main className="min-h-screen pt-40 pb-40 px-6 max-w-[1600px] mx-auto font-sans">
       
-      {/* HERO SECTION */}
+      {/* HERO */}
       <header className="mb-24 text-center space-y-6">
         <h1 className="text-7xl md:text-9xl font-semibold tracking-tighter text-apple-text">
           {category}.
@@ -57,14 +64,14 @@ export default function FinderPage() {
         </p>
       </header>
 
-      {/* SEGMENTED CONTROL */}
+      {/* SCROLLABLE SEGMENTED CONTROL */}
       <div className="flex justify-center mb-20">
-        <div className="inline-flex bg-[#E8E8ED] p-1.5 rounded-full relative overflow-x-auto max-w-full">
+        <div className="inline-flex bg-[#E8E8ED] p-1.5 rounded-full relative overflow-x-auto max-w-full scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-6 md:px-8 py-2.5 text-[13px] font-semibold rounded-full transition-all duration-300 relative z-10 whitespace-nowrap ${
+              className={`px-6 py-2.5 text-[13px] font-semibold rounded-full transition-all duration-300 relative z-10 whitespace-nowrap ${
                 category === cat 
                   ? 'bg-white text-black shadow-sm' 
                   : 'text-gray-500 hover:text-black'
@@ -76,7 +83,7 @@ export default function FinderPage() {
         </div>
       </div>
 
-      {/* LOADING SKELETON */}
+      {/* LOADING */}
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
            {[1,2,3,4].map(i => (
@@ -96,7 +103,7 @@ export default function FinderPage() {
             >
               <div className="relative z-10">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-apple-gray mb-3 block">
-                  {item.series || item.category || 'Product'}
+                  {item.series || item.category || 'Apple Device'}
                 </span>
                 <h2 className="text-3xl font-semibold tracking-tight text-apple-text leading-[1.1]">
                   {item.model_name}
@@ -104,52 +111,69 @@ export default function FinderPage() {
                 
                 <div className="mt-10 space-y-4">
                    
-                   {/* 1. Accessory Specifics */}
-                   {category === 'Accessory' && (
+                   {/* --- DYNAMIC CATEGORY SPECS --- */}
+
+                   {/* Spatial (Vision Pro) */}
+                   {category === 'Spatial' && (
                      <>
-                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Type</span>
-                          <span className="font-semibold">{item.connection_type}</span>
-                      </div>
-                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Haptics</span>
-                          <span className="font-semibold text-apple-blue">{item.haptic_feedback || 'No'}</span>
-                      </div>
-                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Find My</span>
-                          <span className="font-semibold">{item.find_my_support || 'No'}</span>
-                      </div>
+                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">Resolution</span>
+                          <span className="font-semibold text-apple-blue">{item.pixels_per_eye}</span>
+                       </div>
+                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">Latency</span>
+                          <span className="font-semibold">{item.photon_latency_ms} ms</span>
+                       </div>
                      </>
                    )}
 
-                   {/* 2. Watch Specifics */}
-                   {category === 'Watch' && (
-                     <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Case</span>
-                          <span className="font-semibold">{item.case_size_mm}mm</span>
-                      </div>
+                   {/* Audio (AirPods) */}
+                   {category === 'Audio' && (
+                     <>
+                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">ANC</span>
+                          <span className="font-semibold">{item.noise_cancellation}</span>
+                       </div>
+                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">Battery</span>
+                          <span className="font-semibold">{item.listening_time_hrs} hrs</span>
+                       </div>
+                     </>
                    )}
 
-                   {/* 3. Common Chip Spec (iPhone/iPad/Mac) */}
-                   {['iPhone', 'iPad', 'Mac', 'Watch'].includes(category) && (
-                     <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                        <span className="text-gray-400 font-medium">Chip</span>
-                        <span className="font-semibold">{item.chip_name}</span>
-                     </div>
+                   {/* Home (Apple TV / HomePod) */}
+                   {category === 'Home' && (
+                     <>
+                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">Thread</span>
+                          <span className="font-semibold text-apple-blue">{item.thread_support || 'No'}</span>
+                       </div>
+                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">Chip</span>
+                          <span className="font-semibold">{item.processor}</span>
+                       </div>
+                     </>
                    )}
-                   
+
+                   {/* Universal Release Date */}
                    <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
                       <span className="text-gray-400 font-medium">Release</span>
                       <span className="font-semibold">{item.release_date}</span>
                    </div>
+
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-xs font-bold text-apple-blue opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-75">
-                View Specs <span className="text-lg">→</span>
+                View Deep Dive <span className="text-lg">→</span>
               </div>
               
-              <div className={`absolute -bottom-32 -right-32 w-80 h-80 rounded-full blur-[80px] group-hover:opacity-60 transition-colors duration-1000 bg-gray-50/50 group-hover:bg-gray-200/50`}></div>
+              {/* Category-Specific Gradient */}
+              <div className={`absolute -bottom-32 -right-32 w-80 h-80 rounded-full blur-[80px] group-hover:opacity-60 transition-colors duration-1000 
+                ${category === 'Spatial' ? 'bg-purple-50/50 group-hover:bg-purple-100/60' : 
+                  category === 'Audio' ? 'bg-orange-50/50 group-hover:bg-orange-100/60' : 
+                  'bg-gray-50/50 group-hover:bg-gray-200/50'}`}>
+              </div>
             </Link>
           ))}
         </div>
@@ -164,7 +188,6 @@ export default function FinderPage() {
            </p>
         </div>
       )}
-
     </main>
   );
 }

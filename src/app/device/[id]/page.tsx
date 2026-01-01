@@ -5,32 +5,27 @@ import Link from 'next/link';
 export default async function DevicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: deviceSlug } = await params;
 
-  // 1. Search Chain: iPhone -> iPad -> Mac -> Watch -> Accessories
-  let { data: device } = await supabase.from('iPhones').select('*').eq('slug', deviceSlug).single();
-
-  if (!device) {
-    const { data: ipad } = await supabase.from('iPads').select('*').eq('slug', deviceSlug).single();
-    device = ipad;
-  }
-  if (!device) {
-    const { data: mac } = await supabase.from('Macs').select('*').eq('slug', deviceSlug).single();
-    device = mac;
-  }
-  if (!device) {
-    const { data: watch } = await supabase.from('Watches').select('*').eq('slug', deviceSlug).single();
-    device = watch;
-  }
-  if (!device) {
-    const { data: acc } = await supabase.from('Accessories').select('*').eq('slug', deviceSlug).single();
-    device = acc;
+  // 1. SEQUENTIAL SEARCH (The "Waterfall" Search)
+  // Check tables in order of popularity to minimize wait time
+  let device = null;
+  const tables = ['iPhones', 'iPads', 'Macs', 'Watches', 'audio_devices', 'spatial_computers', 'home_entertainment', 'Accessories'];
+  
+  for (const table of tables) {
+    const { data } = await supabase.from(table).select('*').eq('slug', deviceSlug).single();
+    if (data) {
+      device = data;
+      break;
+    }
   }
 
   if (!device) return notFound();
 
-  // Helper Variables
-  const isAccessory = !!device.connection_type; // Unique to accessories
+  // 2. CATEGORY DETECTION
+  const isSpatial = !!device.r1_chip; // Only Vision Pro has R1
+  const isAudio = !!device.noise_cancellation; // Only AirPods/Beats
+  const isHome = !!device.thread_support && !device.r1_chip; // Apple TV / HomePod
   const isWatch = !!device.case_size_mm;
-
+  
   // Reusable Spec Row
   const SpecRow = ({ label, value, unit = "" }: { label: string, value: any, unit?: string }) => {
     if (value === null || value === undefined || value === "") return null;
@@ -66,84 +61,80 @@ export default async function DevicePage({ params }: { params: Promise<{ id: str
 
       <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-x-20">
         
-        {/* LEFT COLUMN: DESIGN & COMPATIBILITY */}
+        {/* --- LEFT COLUMN: DESIGN & BUILD --- */}
         <div>
           <SectionTitle title="Design & Build" />
           
           <SpecRow label="Weight" value={device.weight_grams} unit=" g" />
-          {device.weight_kg && <SpecRow label="Weight" value={device.weight_kg} unit=" kg" />}
+          <SpecRow label="Weight" value={device.weight_kg} unit=" kg" />
           
-          {isAccessory ? (
-             <>
-               <SpecRow label="Connection" value={device.connection_type} />
-               <SpecRow label="Battery Type" value={device.battery_type} />
-               <SpecRow label="Find My" value={device.find_my_support} />
-             </>
-          ) : (
-             <>
-               <SpecRow label="Height" value={device.height_mm} unit=" mm" />
-               <SpecRow label="Width" value={device.width_mm} unit=" mm" />
-               <SpecRow label="Depth" value={device.depth_mm} unit=" mm" />
-               <SpecRow label="Material" value={device.case_material || device.frame_material} />
-             </>
-          )}
-
-          {/* Special Compatibility Box for Accessories */}
-          {isAccessory && device.compatibility_notes && (
-            <div className="mt-8">
-              <SectionTitle title="Compatibility" />
-              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 text-sm leading-relaxed text-gray-600">
-                {device.compatibility_notes}
-              </div>
-            </div>
-          )}
-
-          {!isAccessory && (
+          {isSpatial && <SpecRow label="Headband" value={device.headband_type} />}
+          {isHome && <SpecRow label="Dimensions" value={device.display_size || 'N/A'} />}
+          {isAudio && <SpecRow label="IP Rating" value={device.ip_rating} />}
+          
+          <SpecRow label="Material" value={device.case_material || device.frame_material} />
+          
+          {/* DISPLAY (For Phones/Macs/Spatial) */}
+          {(device.resolution || device.pixels_per_eye) && (
             <>
-              <SectionTitle title="Display" />
-              <SpecRow label="Size" value={device.screen_size || device.display_size_inches} unit='"' />
-              <SpecRow label="Resolution" value={device.resolution || device.resolution_pixels} />
+              <SectionTitle title="Visual Technology" />
+              <SpecRow label="Pixels per Eye" value={device.pixels_per_eye} />
+              <SpecRow label="Display Type" value={device.display_tech || device.panel_type} />
               <SpecRow label="Refresh Rate" value={device.refresh_rate_hz} unit="Hz" />
-              <SpecRow label="Brightness" value={device.peak_brightness || device.peak_brightness_nits} unit=" nits" />
+              <SpecRow label="IPD Range" value={device.ipd_range_mm} />
             </>
           )}
         </div>
 
-        {/* RIGHT COLUMN: PERFORMANCE & FEATURES */}
+        {/* --- RIGHT COLUMN: PERFORMANCE & FEATURES --- */}
         <div>
-          {isAccessory ? (
+          
+          {/* SPATIAL COMPUTING SPECS */}
+          {isSpatial && (
              <>
-                <SectionTitle title="Input Technology" />
-                <SpecRow label="Pressure Sensitivity" value={device.pressure_sensitivity} />
-                <SpecRow label="Haptic Feedback" value={device.haptic_feedback} />
-                <SpecRow label="Hover Support" value={device.hover_support} />
-                <SpecRow label="Barrel Roll" value={device.barrel_roll} />
-             </>
-          ) : (
-             <>
-               <SectionTitle title="Performance" />
-               <SpecRow label="Chipset" value={device.chip_name} />
-               <SpecRow label="CPU Cores" value={device.cpu_cores} />
-               <SpecRow label="RAM" value={device.ram_gb || device.base_ram_gb} unit="GB" />
-               <SpecRow label="Storage" value={device.storage_gb || device.base_storage_gb} unit="GB" />
+                <SectionTitle title="Spatial Computing" />
+                <SpecRow label="Main Chip" value={device.chip_name} />
+                <SpecRow label="Co-Processor" value={device.r1_chip} />
+                <SpecRow label="Photon Latency" value={device.photon_latency_ms} unit=" ms" />
+                <SpecRow label="Operating System" value={device.os_version} />
              </>
           )}
 
-          {/* Universal Connectivity */}
-          <SectionTitle title="Connectivity" />
-          <SpecRow label="Wi-Fi" value={device.wifi_version} />
-          <SpecRow label="Bluetooth" value={device.bluetooth_version} />
-          
-          {/* Watch Health Sensors */}
-          {isWatch && (
-            <>
-               <SectionTitle title="Health Sensors" />
-               <SpecRow label="Heart Rate" value={device.heart_rate_gen} />
-               <SpecRow label="ECG" value={device.ecg_support} />
-               <SpecRow label="Blood Oxygen" value={device.blood_oxygen} />
-            </>
+          {/* AUDIO SPECS */}
+          {isAudio && (
+             <>
+                <SectionTitle title="Audio Architecture" />
+                <SpecRow label="Chip" value={device.chip_name} />
+                <SpecRow label="Noise Cancellation" value={device.noise_cancellation} />
+                <SpecRow label="Transparency" value={device.transparency_mode} />
+                <SpecRow label="Spatial Audio" value={device.spatial_audio} />
+             </>
           )}
+
+          {/* HOME SPECS */}
+          {isHome && (
+             <>
+               <SectionTitle title="Home Theater" />
+               <SpecRow label="Processor" value={device.processor} />
+               <SpecRow label="Audio Tech" value={device.audio_tech} />
+               <SpecRow label="Thread Support" value={device.thread_support} />
+               <SpecRow label="Ethernet" value={device.ethernet_speed_mbps} unit=" Mbps" />
+             </>
+          )}
+
+          {/* CONNECTIVITY (Universal) */}
+          <SectionTitle title="Connectivity & Power" />
+          
+          {/* Battery Logic */}
+          <SpecRow label="Battery Life" value={device.battery_life_hrs || device.listening_time_hrs} unit=" hrs" />
+          {isAudio && <SpecRow label="With ANC" value={device.anc_listening_time_hrs} unit=" hrs" />}
+          {isAudio && <SpecRow label="Charging Case" value={device.charging_port} />}
+          
+          <SpecRow label="Wi-Fi" value={device.wi_fi_gen || device.wifi_version} />
+          <SpecRow label="Bluetooth" value={device.bluetooth_version} />
+          <SpecRow label="HDMI Version" value={device.hdmi_version} />
         </div>
+
       </div>
     </main>
   );
