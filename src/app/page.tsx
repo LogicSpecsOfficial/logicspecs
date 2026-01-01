@@ -9,8 +9,8 @@ export default function FinderPage() {
   const [category, setCategory] = useState('iPhone');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Added 'Watch' to the ecosystem
-  const categories = ['iPhone', 'iPad', 'Mac', 'Watch'];
+  // Added 'Accessory' to the list
+  const categories = ['iPhone', 'iPad', 'Mac', 'Watch', 'Accessory'];
 
   useEffect(() => {
     async function fetchData() {
@@ -21,7 +21,8 @@ export default function FinderPage() {
       const tableName = category === 'iPhone' ? 'iPhones' : 
                         category === 'iPad' ? 'iPads' : 
                         category === 'Mac' ? 'Macs' : 
-                        category === 'Watch' ? 'Watches' : null;
+                        category === 'Watch' ? 'Watches' :
+                        category === 'Accessory' ? 'Accessories' : null;
 
       if (!tableName) return;
 
@@ -95,70 +96,60 @@ export default function FinderPage() {
             >
               <div className="relative z-10">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-apple-gray mb-3 block">
-                  {item.series}
+                  {item.series || item.category || 'Product'}
                 </span>
                 <h2 className="text-3xl font-semibold tracking-tight text-apple-text leading-[1.1]">
                   {item.model_name}
                 </h2>
                 
                 <div className="mt-10 space-y-4">
-                   <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                      <span className="text-gray-400 font-medium">Chip</span>
-                      <span className="font-semibold">{item.chip_name}</span>
-                   </div>
                    
-                   {/* DYNAMIC SPECS BASED ON CATEGORY */}
-                   
-                   {/* 1. Watch Specifics */}
-                   {category === 'Watch' && (
+                   {/* 1. Accessory Specifics */}
+                   {category === 'Accessory' && (
                      <>
                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Case</span>
-                          <span className="font-semibold">{item.case_size_mm}mm</span>
+                          <span className="text-gray-400 font-medium">Type</span>
+                          <span className="font-semibold">{item.connection_type}</span>
                       </div>
                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Material</span>
-                          <span className="font-semibold truncate max-w-[100px]">{item.case_material}</span>
+                          <span className="text-gray-400 font-medium">Haptics</span>
+                          <span className="font-semibold text-apple-blue">{item.haptic_feedback || 'No'}</span>
                       </div>
                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Display</span>
-                          <span className="font-semibold">{item.peak_brightness_nits} nits</span>
+                          <span className="text-gray-400 font-medium">Find My</span>
+                          <span className="font-semibold">{item.find_my_support || 'No'}</span>
                       </div>
                      </>
                    )}
 
-                   {/* 2. iPad Specifics */}
-                   {category === 'iPad' && (
+                   {/* 2. Watch Specifics */}
+                   {category === 'Watch' && (
                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                        <span className="text-gray-400 font-medium">Pencil</span>
-                        <span className="font-semibold text-apple-blue">{item.pencil_support || 'N/A'}</span>
-                     </div>
-                   )}
-
-                   {/* 3. Mac Specifics */}
-                   {category === 'Mac' && (
-                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Memory</span>
-                          <span className="font-semibold">{item.base_ram_gb}GB - {item.max_ram_gb}GB</span>
+                          <span className="text-gray-400 font-medium">Case</span>
+                          <span className="font-semibold">{item.case_size_mm}mm</span>
                       </div>
                    )}
 
-                   {/* 4. iPhone Specifics */}
-                   {category === 'iPhone' && (
+                   {/* 3. Common Chip Spec (iPhone/iPad/Mac) */}
+                   {['iPhone', 'iPad', 'Mac', 'Watch'].includes(category) && (
                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                        <span className="text-gray-400 font-medium">Release</span>
-                        <span className="font-semibold">{item.release_date}</span>
+                        <span className="text-gray-400 font-medium">Chip</span>
+                        <span className="font-semibold">{item.chip_name}</span>
                      </div>
                    )}
+                   
+                   <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                      <span className="text-gray-400 font-medium">Release</span>
+                      <span className="font-semibold">{item.release_date}</span>
+                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-xs font-bold text-apple-blue opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-75">
-                View Deep Dive <span className="text-lg">→</span>
+                View Specs <span className="text-lg">→</span>
               </div>
               
-              {/* Conditional Gradient for Watch (Green tint for health) */}
-              <div className={`absolute -bottom-32 -right-32 w-80 h-80 rounded-full blur-[80px] group-hover:opacity-60 transition-colors duration-1000 ${category === 'Watch' ? 'bg-green-50/50 group-hover:bg-green-100/60' : 'bg-blue-50/50 group-hover:bg-blue-100/60'}`}></div>
+              <div className={`absolute -bottom-32 -right-32 w-80 h-80 rounded-full blur-[80px] group-hover:opacity-60 transition-colors duration-1000 bg-gray-50/50 group-hover:bg-gray-200/50`}></div>
             </Link>
           ))}
         </div>
