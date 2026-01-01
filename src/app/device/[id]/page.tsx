@@ -1,30 +1,47 @@
 import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 
-// We use { params } to grab the [id] from the URL
 export default async function DevicePage({ params }: { params: { id: string } }) {
-  
-  // 1. We grab the ID from the URL (e.g., iPhone17,3)
-  const deviceId = params.id;
-
-  // 2. We search Supabase for that ID in the 'model_identifier' column
+  // We look for the slug that matches the [id] in the URL
   const { data: phone, error } = await supabase
     .from('iPhones')
     .select('*')
-    .eq('model_identifier', deviceId)
+    .eq('slug', params.id) 
     .single();
 
-  // If Supabase can't find it, or there's an error, show 404
-  if (!phone || error) {
-    console.error("Supabase Error:", error);
-    return notFound();
-  }
+  if (!phone || error) return notFound();
+
+  const SpecRow = ({ label, value }: { label: string, value: any }) => (
+    <div className="flex justify-between py-4 border-b border-gray-100">
+      <span className="text-gray-500 font-medium">{label}</span>
+      <span className="text-gray-900 font-semibold">{value || '—'}</span>
+    </div>
+  );
 
   return (
-    <main className="p-20">
-      <h1 className="text-4xl font-bold">{phone.model_name}</h1>
-      <p className="text-gray-500">ID found: {phone.model_identifier}</p>
-      {/* ... rest of your UI ... */}
+    <main className="min-h-screen bg-white">
+      <div className="bg-[#f5f5f7] py-20 px-6 text-center">
+        <h1 className="text-5xl font-bold tracking-tight">{phone.model_name}</h1>
+        <p className="text-xl text-gray-500 mt-2 italic">Technical Specifications</p>
+      </div>
+
+      <div className="max-w-3xl mx-auto px-6 mt-12 pb-20">
+        <section className="mb-10">
+          <h4 className="text-xs uppercase tracking-widest text-blue-600 font-bold mb-4">Core Dimensions</h4>
+          <SpecRow label="Height" value={`${phone.height_mm} mm`} />
+          <SpecRow label="Width" value={`${phone.width_mm} mm`} />
+          <SpecRow label="Depth" value={`${phone.depth_mm} mm`} />
+          <SpecRow label="Weight" value={`${phone.weight_grams}g`} />
+        </section>
+
+        <section className="mb-10">
+          <h4 className="text-xs uppercase tracking-widest text-blue-600 font-bold mb-4">Internal Power</h4>
+          <SpecRow label="Chip" value={phone.chip_name} />
+          <SpecRow label="RAM" value={`${phone.ram_gb}GB`} />
+          <SpecRow label="Geekbench Multi" value={phone.geekbench_multi} />
+          <SpecRow label="Battery" value={`${phone.battery_mah} mAh`} />
+        </section>
+      </div>
     </main>
   );
 }
