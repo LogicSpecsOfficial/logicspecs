@@ -5,15 +5,14 @@ import Link from 'next/link';
 export default async function DevicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: deviceSlug } = await params;
 
-  // 1. Try finding it in iPhones table
+  // 1. Search Chain: iPhone -> iPad -> Mac
   let { data: device, error } = await supabase
     .from('iPhones')
     .select('*')
     .eq('slug', deviceSlug)
     .single();
 
-  // 2. If not found, try iPads table
-  if (!device || error) {
+  if (!device) {
     const { data: ipad } = await supabase
       .from('iPads')
       .select('*')
@@ -22,9 +21,18 @@ export default async function DevicePage({ params }: { params: Promise<{ id: str
     device = ipad;
   }
 
+  if (!device) {
+    const { data: mac } = await supabase
+      .from('Macs')
+      .select('*')
+      .eq('slug', deviceSlug)
+      .single();
+    device = mac;
+  }
+
   if (!device) return notFound();
 
-  // Reusable Row Component - Hides itself if value is empty/null
+  // Helper Components
   const SpecRow = ({ label, value, unit = "" }: { label: string, value: any, unit?: string }) => {
     if (value === null || value === undefined || value === "") return null;
     return (
@@ -59,86 +67,84 @@ export default async function DevicePage({ params }: { params: Promise<{ id: str
 
       <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-x-20">
         
-        {/* COLUMN 1 */}
+        {/* LEFT COLUMN: DESIGN & DISPLAY */}
         <div>
           <SectionTitle title="Design & Build" />
-          <SpecRow label="Height" value={device.height_mm} unit=" mm" />
-          <SpecRow label="Width" value={device.width_mm} unit=" mm" />
-          <SpecRow label="Depth" value={device.depth_mm} unit=" mm" />
-          <SpecRow label="Weight" value={device.weight_grams} unit="g" />
+          {/* Handles both Mac (weight_kg) and Mobile (weight_grams) */}
+          {device.weight_kg && <SpecRow label="Weight" value={device.weight_kg} unit=" kg" />}
+          {device.weight_grams && <SpecRow label="Weight" value={device.weight_grams} unit=" g" />}
+          
           <SpecRow label="Frame Material" value={device.frame_material} />
-          <SpecRow label="Back Material" value={device.back_material} />
-          <SpecRow label="IP Rating" value={device.ip_rating} />
           <SpecRow label="Colors" value={device.colors} />
+          
+          {/* Mac Specific Design */}
+          <SpecRow label="Thunderbolt" value={device.thunderbolt_gen ? `Thunderbolt ${device.thunderbolt_gen}` : null} />
+          <SpecRow label="Port Count" value={device.port_count} />
+          <SpecRow label="HDMI" value={device.hdmi_version} />
 
           <SectionTitle title="Display Technology" />
-          <SpecRow label="Type" value={device.display_type} />
-          <SpecRow label="Size" value={device.display_size_inches} unit='"' />
-          <SpecRow label="Resolution" value={device.resolution_pixels} />
-          <SpecRow label="Pixel Density" value={device.pixel_density_ppi} unit=" ppi" />
+          <SpecRow label="Panel Type" value={device.panel_type || device.display_type} />
+          <SpecRow label="Size" value={device.screen_size || device.display_size_inches} unit='"' />
+          <SpecRow label="Resolution" value={device.resolution || device.resolution_pixels} />
           <SpecRow label="Refresh Rate" value={device.refresh_rate_hz} unit="Hz" />
-          <SpecRow label="Brightness (Peak)" value={device.peak_brightness_nits} unit=" nits" />
-          <SpecRow label="HDR Support" value={device.hdr_support ? 'Yes' : null} />
-          <SpecRow label="Always-On" value={device.always_on_display ? 'Yes' : null} />
+          <SpecRow label="Brightness" value={device.peak_brightness || device.peak_brightness_nits} unit=" nits" />
         </div>
 
-        {/* COLUMN 2 */}
+        {/* RIGHT COLUMN: PERFORMANCE */}
         <div>
-          <SectionTitle title="Performance & Silicon" />
+          <SectionTitle title="Performance Architecture" />
           <SpecRow label="Chipset" value={device.chip_name} />
           <SpecRow label="CPU Cores" value={device.cpu_cores} />
           <SpecRow label="GPU Cores" value={device.gpu_cores} />
-          <SpecRow label="Neural Engine" value={device.neural_engine_cores} unit=" Cores" />
+          
+          {/* Mac Specific Memory */}
+          {device.base_ram_gb && (
+            <div className="py-4 border-b border-gray-100">
+              <div className="flex justify-between">
+                <span className="text-gray-500 font-medium text-sm">Unified Memory</span>
+                <span className="text-gray-900 font-semibold text-sm">{device.base_ram_gb}GB - {device.max_ram_gb}GB</span>
+              </div>
+              <div className="text-[10px] text-gray-400 mt-1 text-right">Bandwidth: {device.memory_bandwidth_gbs} GB/s</div>
+            </div>
+          )}
+
+          {/* iPhone/iPad Memory */}
           <SpecRow label="RAM" value={device.ram_gb} unit="GB" />
-          <SpecRow label="RAM Type" value={device.ram_type} />
-          <SpecRow label="Storage Options" value={device.storage_options} />
-          <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
-             <div className="text-[10px] uppercase font-bold text-gray-400 mb-2">Benchmark Scores</div>
+
+          {device.base_storage_gb && (
+             <SpecRow label="Storage" value={`${device.base_storage_gb}GB - ${device.max_storage_gb >= 1000 ? device.max_storage_gb/1000 + 'TB' : device.max_storage_gb + 'GB'}`} />
+          )}
+
+          {/* BENCHMARK BOX */}
+          <div className="mt-8 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+             <div className="text-[10px] uppercase font-bold text-blue-600 tracking-widest mb-4">Lab Benchmarks</div>
              <SpecRow label="Geekbench Single" value={device.geekbench_single} />
              <SpecRow label="Geekbench Multi" value={device.geekbench_multi} />
+             <SpecRow label="Cinebench Multi" value={device.cinebench_multi} />
              <SpecRow label="Metal (GPU)" value={device.gpu_metal_score} />
+             <SpecRow label="Video Encode" value={device.video_encode_fps} unit=" fps" />
+             <SpecRow label="Neural Engine" value={device.neural_engine_tops} unit=" TOPS" />
           </div>
-
-          <SectionTitle title="Camera System" />
-          <SpecRow label="Main Camera" value={device.main_camera_mp} unit="MP" />
-          <SpecRow label="Ultrawide" value={device.ultrawide_mp} unit="MP" />
-          <SpecRow label="Telephoto" value={device.telephoto_mp} unit="MP" />
-          <SpecRow label="Front Camera" value={device.front_camera_mp} unit="MP" />
-          <SpecRow label="Optical Zoom" value={device.optical_zoom} />
-          <SpecRow label="Video Recording" value={device.max_video_resolution} />
-          <SpecRow label="ProRes Support" value={device.prores_support ? 'Yes' : null} />
         </div>
 
-        {/* FULL WIDTH BOTTOM SECTIONS */}
+        {/* BOTTOM SECTION: BATTERY & EXTRAS */}
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-20">
           <div>
-            <SectionTitle title="Battery & Charging" />
+            <SectionTitle title="Power & Efficiency" />
+            <SpecRow label="Battery Runtime" value={device.battery_runtime_hrs} unit=" hrs" />
             <SpecRow label="Capacity" value={device.battery_mah} unit=" mAh" />
-            <SpecRow label="Video Playback" value={device.video_playback_hours} unit=" Hours" />
-            <SpecRow label="Port Type" value={device.port_type} />
-            <SpecRow label="USB Speed" value={device.usb_speed} />
-            <SpecRow label="Wired Charging" value={device.wired_charging_w} unit="W" />
-            <SpecRow label="Wireless Charging" value={device.wireless_charging_w} />
+            <SpecRow label="Charging" value={device.wired_charging_w} unit="W" />
           </div>
 
           <div>
-             <SectionTitle title="Connectivity & Features" />
-             <SpecRow label="Wi-Fi" value={device.wifi_version} />
-             <SpecRow label="Bluetooth" value={device.bluetooth_version} />
-             <SpecRow label="5G" value={device.five_g_support ? 'Yes' : 'No'} />
-             <SpecRow label="SIM Type" value={device.sim_type} />
+             <SectionTitle title="Features" />
+             <SpecRow label="OS at Launch" value={device.os_launch_version || device.ios_launch_version} />
              <SpecRow label="Face ID / Touch ID" value={device.biometrics} />
-             {/* iPad Exclusive Fields */}
-             <SpecRow label="Apple Pencil" value={device.pencil_support} />
-             <SpecRow label="Keyboard" value={device.keyboard_support} />
+             <SpecRow label="Pencil Support" value={device.pencil_support} />
           </div>
         </div>
 
       </div>
-
-      <footer className="mt-20 pt-10 border-t border-gray-200 text-center text-gray-400 text-xs font-mono">
-          LogicSpecs Model Identifier: {device.model_identifier}
-      </footer>
     </main>
   );
 }
