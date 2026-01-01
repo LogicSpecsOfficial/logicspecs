@@ -9,16 +9,19 @@ export default function FinderPage() {
   const [category, setCategory] = useState('iPhone');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const categories = ['iPhone', 'iPad', 'Mac'];
+  // Added 'Watch' to the ecosystem
+  const categories = ['iPhone', 'iPad', 'Mac', 'Watch'];
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       setErrorMsg('');
       
+      // Map selection to Supabase Table Name
       const tableName = category === 'iPhone' ? 'iPhones' : 
                         category === 'iPad' ? 'iPads' : 
-                        category === 'Mac' ? 'Macs' : null;
+                        category === 'Mac' ? 'Macs' : 
+                        category === 'Watch' ? 'Watches' : null;
 
       if (!tableName) return;
 
@@ -42,6 +45,7 @@ export default function FinderPage() {
   return (
     <main className="min-h-screen pt-40 pb-40 px-6 max-w-[1600px] mx-auto font-sans">
       
+      {/* HERO SECTION */}
       <header className="mb-24 text-center space-y-6">
         <h1 className="text-7xl md:text-9xl font-semibold tracking-tighter text-apple-text">
           {category}.
@@ -54,12 +58,12 @@ export default function FinderPage() {
 
       {/* SEGMENTED CONTROL */}
       <div className="flex justify-center mb-20">
-        <div className="inline-flex bg-[#E8E8ED] p-1.5 rounded-full relative">
+        <div className="inline-flex bg-[#E8E8ED] p-1.5 rounded-full relative overflow-x-auto max-w-full">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-8 py-2.5 text-[13px] font-semibold rounded-full transition-all duration-300 relative z-10 ${
+              className={`px-6 md:px-8 py-2.5 text-[13px] font-semibold rounded-full transition-all duration-300 relative z-10 whitespace-nowrap ${
                 category === cat 
                   ? 'bg-white text-black shadow-sm' 
                   : 'text-gray-500 hover:text-black'
@@ -103,7 +107,27 @@ export default function FinderPage() {
                       <span className="font-semibold">{item.chip_name}</span>
                    </div>
                    
-                   {/* DYNAMIC CARD CONTENT */}
+                   {/* DYNAMIC SPECS BASED ON CATEGORY */}
+                   
+                   {/* 1. Watch Specifics */}
+                   {category === 'Watch' && (
+                     <>
+                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">Case</span>
+                          <span className="font-semibold">{item.case_size_mm}mm</span>
+                      </div>
+                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">Material</span>
+                          <span className="font-semibold truncate max-w-[100px]">{item.case_material}</span>
+                      </div>
+                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
+                          <span className="text-gray-400 font-medium">Display</span>
+                          <span className="font-semibold">{item.peak_brightness_nits} nits</span>
+                      </div>
+                     </>
+                   )}
+
+                   {/* 2. iPad Specifics */}
                    {category === 'iPad' && (
                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
                         <span className="text-gray-400 font-medium">Pencil</span>
@@ -111,20 +135,15 @@ export default function FinderPage() {
                      </div>
                    )}
 
+                   {/* 3. Mac Specifics */}
                    {category === 'Mac' && (
-                     <>
                       <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
                           <span className="text-gray-400 font-medium">Memory</span>
                           <span className="font-semibold">{item.base_ram_gb}GB - {item.max_ram_gb}GB</span>
                       </div>
-                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
-                          <span className="text-gray-400 font-medium">Cinebench</span>
-                          <span className="font-semibold text-apple-blue">{item.cinebench_multi || 'N/A'}</span>
-                      </div>
-                     </>
                    )}
 
-                   {/* Standard Release Date for iPhone */}
+                   {/* 4. iPhone Specifics */}
                    {category === 'iPhone' && (
                      <div className="flex justify-between text-sm border-b border-gray-100 pb-3">
                         <span className="text-gray-400 font-medium">Release</span>
@@ -138,12 +157,14 @@ export default function FinderPage() {
                 View Deep Dive <span className="text-lg">→</span>
               </div>
               
-              <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-blue-50/50 rounded-full blur-[80px] group-hover:bg-blue-100/60 transition-colors duration-1000"></div>
+              {/* Conditional Gradient for Watch (Green tint for health) */}
+              <div className={`absolute -bottom-32 -right-32 w-80 h-80 rounded-full blur-[80px] group-hover:opacity-60 transition-colors duration-1000 ${category === 'Watch' ? 'bg-green-50/50 group-hover:bg-green-100/60' : 'bg-blue-50/50 group-hover:bg-blue-100/60'}`}></div>
             </Link>
           ))}
         </div>
       )}
 
+      {/* EMPTY STATE */}
       {!loading && (items.length === 0 || errorMsg) && (
         <div className="text-center py-32 border border-dashed border-gray-200 rounded-apple">
            <h3 className="text-2xl font-bold text-gray-400">Database Empty</h3>
