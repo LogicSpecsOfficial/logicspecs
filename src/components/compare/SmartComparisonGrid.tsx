@@ -13,6 +13,7 @@ const springTransition = {
   mass: 1 
 };
 
+// --- DATA: HISTORICAL TRENDS ---
 const HISTORY_DATA: Record<string, { year: string; val: number; model: string }[]> = {
   ram_gb: [
     { year: '2012', val: 1, model: 'iPhone 5' },
@@ -47,6 +48,15 @@ const getIsWinner = (currentVal: any, allDevices: any[], specKey: string) => {
   return currentVal === max && max !== 0;
 };
 
+// Helper to calculate support years remaining (Approx 7 years from release)
+const getSupportRemaining = (releaseDate: string) => {
+  if (!releaseDate) return 0;
+  const releaseYear = new Date(releaseDate).getFullYear();
+  const currentYear = new Date().getFullYear();
+  const yearsPassed = currentYear - releaseYear;
+  return Math.max(0, 7 - yearsPassed);
+};
+
 export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
   const [spotlightSpec, setSpotlightSpec] = useState<string | null>(null);
   const [filterQuery, setFilterQuery] = useState('');
@@ -55,18 +65,20 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
 
   const gridCols = devices.length;
 
+  // Find the device that will be supported the longest
+  const longevityWinner = devices.reduce((prev, current) => 
+    (getSupportRemaining(prev.release_date) > getSupportRemaining(current.release_date)) ? prev : current
+  , devices[0]);
+
   const categories: { id: SpecCategory; specs: { label: string; key: string; unit?: string }[] }[] = [
     { 
       id: 'Performance', 
       specs: [
         { label: 'Chipset', key: 'chip_name' },
         { label: 'CPU Cores', key: 'cpu_cores' },
-        { label: 'GPU Cores', key: 'gpu_cores' },
         { label: 'RAM', key: 'ram_gb', unit: 'GB' },
-        { label: 'Neural Engine', key: 'neural_engine_cores', unit: ' Cores' },
         { label: 'Geekbench Multi', key: 'geekbench_multi' },
         { label: 'Geekbench Single', key: 'geekbench_single' },
-        { label: 'Base Storage', key: 'base_storage_gb', unit: 'GB' }
       ] 
     },
     { 
@@ -74,33 +86,23 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
       specs: [
         { label: 'Size', key: 'display_size_inches', unit: '"' },
         { label: 'Technology', key: 'display_tech' },
-        { label: 'Resolution', key: 'resolution' },
-        { label: 'Pixel Density', key: 'pixel_density_ppi', unit: ' ppi' },
         { label: 'Refresh Rate', key: 'refresh_rate_hz', unit: 'Hz' },
         { label: 'Peak Brightness', key: 'peak_brightness_nits', unit: ' nits' },
-        { label: 'Always-On', key: 'always_on_display' }
       ] 
     },
     { 
       id: 'Camera', 
       specs: [
         { label: 'Main Camera', key: 'main_camera_mp', unit: 'MP' },
-        { label: 'Aperture', key: 'main_aperture' },
-        { label: 'Ultrawide', key: 'ultrawide_mp', unit: 'MP' },
-        { label: 'Telephoto', key: 'telephoto_mp', unit: 'MP' },
         { label: 'Optical Zoom', key: 'optical_zoom_x', unit: 'x' },
         { label: 'Video', key: 'max_video_resolution' },
-        { label: 'ProRes', key: 'prores_support' },
-        { label: 'Front Camera', key: 'front_camera_mp', unit: 'MP' }
       ] 
     },
     { 
       id: 'Battery', 
       specs: [
         { label: 'Capacity', key: 'battery_mah', unit: ' mAh' },
-        { label: 'Video Playback', key: 'video_playback_hours', unit: ' hrs' },
         { label: 'Wired Charge', key: 'wired_charging_w', unit: 'W' },
-        { label: 'Wireless', key: 'magsafe_charging_w', unit: 'W' },
         { label: 'Connector', key: 'port_type' }
       ] 
     },
@@ -108,23 +110,12 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
       id: 'Design',
       specs: [
         { label: 'Weight', key: 'weight_grams', unit: 'g' },
-        { label: 'Thickness', key: 'thickness_mm', unit: 'mm' },
         { label: 'Material', key: 'frame_material' },
         { label: 'Water Resist', key: 'ip_rating' }
-      ]
-    },
-    {
-      id: 'Connectivity',
-      specs: [
-        { label: 'Network', key: 'cellular_tech' },
-        { label: 'Wi-Fi', key: 'wifi_standard' },
-        { label: 'Bluetooth', key: 'bluetooth_version' },
-        { label: 'SIM Support', key: 'sim_config' }
       ]
     }
   ];
 
-  // Logic to filter the matrix based on user typing
   const filteredCategories = categories.map(cat => ({
     ...cat,
     specs: cat.specs.filter(s => 
@@ -137,7 +128,36 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
     <LayoutGroup>
       <div className="w-full space-y-10">
         
-        {/* SPEC SEARCH BAR */}
+        {/* 1. LONGEVITY & SUPPORT BENTO */}
+        {devices.length > 1 && !filterQuery && (
+           <motion.div layout className="bg-[#0A0A0B] rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden border border-white/5">
+              <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-10">
+                <div className="max-w-xl">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500">Longevity Forecast</span>
+                  <h3 className="text-3xl font-black mt-3 tracking-tighter leading-none italic uppercase">
+                    Support <span className="text-blue-600">Leader</span>: {longevityWinner.model_name}
+                  </h3>
+                  <p className="text-gray-400 text-sm mt-4 leading-relaxed max-w-sm font-medium">
+                    Based on Apple's history of 7-year update cycles, this device is estimated to receive iOS/macOS updates until <span className="text-white font-bold">{new Date(longevityWinner.release_date).getFullYear() + 7}</span>.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  {devices.map((d, i) => {
+                    const remaining = getSupportRemaining(d.release_date);
+                    return (
+                      <div key={i} className="bg-white/5 p-4 rounded-3xl border border-white/10 text-center min-w-[100px]">
+                        <div className={`text-[20px] font-black italic ${remaining > 2 ? 'text-green-500' : 'text-red-500'}`}>~{remaining}y</div>
+                        <div className="text-[7px] font-bold opacity-30 uppercase tracking-widest mt-1">Updates Left</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] -mr-32 -mt-32" />
+           </motion.div>
+        )}
+
+        {/* 2. SPEC SEARCH BAR */}
         <div className="flex justify-center mb-8">
           <div className="relative w-full max-w-md">
             <input 
@@ -147,16 +167,10 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
               onChange={(e) => setFilterQuery(e.target.value)}
               className="w-full bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl px-6 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm"
             />
-            {filterQuery && (
-              <button 
-                onClick={() => setFilterQuery('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black font-bold"
-              >✕</button>
-            )}
           </div>
         </div>
 
-        {/* HISTORY MODAL */}
+        {/* 3. HISTORY MODAL */}
         <AnimatePresence>
           {spotlightSpec && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -167,7 +181,7 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
                     <span className="text-blue-600 font-black text-[10px] uppercase tracking-[0.4em]">Historical Trend</span>
                     <h2 className="text-4xl font-black tracking-tighter uppercase italic">{spotlightSpec.replace(/_/g, ' ')}</h2>
                   </div>
-                  <button onClick={() => setSpotlightSpec(null)} className="bg-gray-100 h-14 w-14 rounded-full flex items-center justify-center font-bold hover:bg-black hover:text-white transition-all">✕</button>
+                  <button onClick={() => setSpotlightSpec(null)} className="bg-gray-100 h-14 w-14 rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">✕</button>
                 </div>
                 <div className="h-[400px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -196,7 +210,7 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
           )}
         </AnimatePresence>
 
-        {/* MAIN MATRIX */}
+        {/* 4. MAIN MATRIX */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
           <AnimatePresence mode="popLayout">
             {filteredCategories.map((cat) => (
