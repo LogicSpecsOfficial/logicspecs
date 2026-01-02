@@ -1,24 +1,26 @@
-// v1.1.0
-// Changelog: Fixed named export and added explicit 'use client' boundary for Turbopack resolution.
+// v1.2.0
+// Changelog: Forced global <html> class injection and fixed route-change theme drifting.
 
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useLayoutEffect } from 'react';
 
 const ThemeContext = createContext({ isDark: false, toggleTheme: () => {} });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
+  // useLayoutEffect prevents the 'flash' during client-side navigation
+  useLayoutEffect(() => {
     const savedTheme = localStorage.getItem('ls-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setIsDark(true);
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    setIsDark(shouldBeDark);
+    if (shouldBeDark) {
       document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 
@@ -34,9 +36,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setIsDark(true);
     }
   };
-
-  // Prevent hydration flicker
-  if (!mounted) return <>{children}</>;
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>
