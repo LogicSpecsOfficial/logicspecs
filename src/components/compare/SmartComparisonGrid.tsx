@@ -49,6 +49,7 @@ const getIsWinner = (currentVal: any, allDevices: any[], specKey: string) => {
 
 export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
   const [spotlightSpec, setSpotlightSpec] = useState<string | null>(null);
+  const [filterQuery, setFilterQuery] = useState('');
 
   if (!devices || devices.length === 0) return null;
 
@@ -123,10 +124,38 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
     }
   ];
 
+  // Logic to filter the matrix based on user typing
+  const filteredCategories = categories.map(cat => ({
+    ...cat,
+    specs: cat.specs.filter(s => 
+      s.label.toLowerCase().includes(filterQuery.toLowerCase()) || 
+      cat.id.toLowerCase().includes(filterQuery.toLowerCase())
+    )
+  })).filter(cat => cat.specs.length > 0);
+
   return (
     <LayoutGroup>
       <div className="w-full space-y-10">
         
+        {/* SPEC SEARCH BAR */}
+        <div className="flex justify-center mb-8">
+          <div className="relative w-full max-w-md">
+            <input 
+              type="text" 
+              placeholder="Filter specifications (e.g. 'RAM', 'Zoom')..." 
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+              className="w-full bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl px-6 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm"
+            />
+            {filterQuery && (
+              <button 
+                onClick={() => setFilterQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black font-bold"
+              >✕</button>
+            )}
+          </div>
+        </div>
+
         {/* HISTORY MODAL */}
         <AnimatePresence>
           {spotlightSpec && (
@@ -152,7 +181,7 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                       <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: '800'}} dy={15} />
                       <Tooltip content={({ active, payload }) => (active && payload ? (
-                        <div className="bg-black text-white p-4 rounded-2xl">
+                        <div className="bg-black text-white p-4 rounded-2xl shadow-2xl">
                           <p className="text-[10px] font-black opacity-50 uppercase">{payload[0].payload.year}</p>
                           <p className="text-xl font-black italic text-blue-400">{payload[0].value}</p>
                           <p className="text-[10px] font-bold">{payload[0].payload.model}</p>
@@ -169,66 +198,66 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
 
         {/* MAIN MATRIX */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
-          {categories.map((cat) => (
-            <motion.div key={cat.id} layout className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden relative">
-              
-              {/* STICKY CARD HEADER */}
-              <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-50 px-10 pt-8 pb-4">
-                <h3 className="text-xl font-black tracking-tighter mb-4 uppercase italic text-gray-300">
-                  {cat.id}
-                </h3>
-                
-                <div className="grid" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
-                  {devices.map((device, idx) => (
-                    <div key={idx} className="text-center px-1">
-                      <span className="text-[9px] font-black uppercase tracking-tighter text-blue-600 block line-clamp-2 leading-none">
-                        {device.model_name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-10 pt-12 space-y-12">
-                {cat.specs.map((spec) => {
-                  const hasHistory = !!HISTORY_DATA[spec.key];
-                  return (
-                    <div 
-                      key={spec.key} 
-                      onClick={() => hasHistory && setSpotlightSpec(spec.key)} 
-                      className={`relative ${hasHistory ? 'cursor-pointer group' : ''}`}
-                    >
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 whitespace-nowrap">
-                        <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-gray-300 group-hover:text-blue-500 transition-colors">
-                          {spec.label}
+          <AnimatePresence mode="popLayout">
+            {filteredCategories.map((cat) => (
+              <motion.div 
+                key={cat.id} 
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden relative"
+              >
+                <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-50 px-10 pt-8 pb-4">
+                  <h3 className="text-xl font-black tracking-tighter mb-4 uppercase italic text-gray-300">
+                    {cat.id}
+                  </h3>
+                  <div className="grid" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
+                    {devices.map((device, idx) => (
+                      <div key={idx} className="text-center px-1">
+                        <span className="text-[9px] font-black uppercase tracking-tighter text-blue-600 block line-clamp-2 leading-none">
+                          {device.model_name}
                         </span>
-                        {hasHistory && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
                       </div>
+                    ))}
+                  </div>
+                </div>
 
-                      <div className="grid pt-2" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
-                        {devices.map((device, idx) => {
-                          const isWinner = getIsWinner(device[spec.key], devices, spec.key);
-                          const value = device[spec.key];
-                          const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : (value || '—');
-                          
-                          return (
-                            <div key={idx} className={`text-center px-2 ${idx < gridCols - 1 ? 'border-r border-gray-50' : ''}`}>
-                              <span className={`text-lg md:text-xl font-black tracking-tighter block transition-colors ${isWinner ? 'text-blue-600' : 'text-gray-900 opacity-80'}`}>
-                                {displayValue}
-                                {typeof value === 'number' && spec.unit && (
-                                  <span className="text-[9px] ml-0.5 font-bold text-gray-300">{spec.unit}</span>
-                                )}
-                              </span>
-                            </div>
-                          );
-                        })}
+                <div className="p-10 pt-12 space-y-12">
+                  {cat.specs.map((spec) => {
+                    const hasHistory = !!HISTORY_DATA[spec.key];
+                    return (
+                      <div key={spec.key} onClick={() => hasHistory && setSpotlightSpec(spec.key)} className={`relative ${hasHistory ? 'cursor-pointer group' : ''}`}>
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 whitespace-nowrap">
+                          <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-gray-300 group-hover:text-blue-500 transition-colors">
+                            {spec.label}
+                          </span>
+                          {hasHistory && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
+                        </div>
+                        <div className="grid pt-2" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
+                          {devices.map((device, idx) => {
+                            const isWinner = getIsWinner(device[spec.key], devices, spec.key);
+                            const value = device[spec.key];
+                            const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : (value || '—');
+                            return (
+                              <div key={idx} className={`text-center px-2 ${idx < gridCols - 1 ? 'border-r border-gray-50' : ''}`}>
+                                <span className={`text-lg md:text-xl font-black tracking-tighter block transition-colors ${isWinner ? 'text-blue-600' : 'text-gray-900 opacity-80'}`}>
+                                  {displayValue}
+                                  {typeof value === 'number' && spec.unit && (
+                                    <span className="text-[9px] ml-0.5 font-bold text-gray-300">{spec.unit}</span>
+                                  )}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          ))}
+                    );
+                  })}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
     </LayoutGroup>
