@@ -48,7 +48,6 @@ const getIsWinner = (currentVal: any, allDevices: any[], specKey: string) => {
 };
 
 export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
-  const [focusedCategory, setFocusedCategory] = useState<SpecCategory | null>(null);
   const [spotlightSpec, setSpotlightSpec] = useState<string | null>(null);
 
   if (!devices || devices.length === 0) return null;
@@ -61,9 +60,12 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
       specs: [
         { label: 'Chipset', key: 'chip_name' },
         { label: 'CPU Cores', key: 'cpu_cores' },
+        { label: 'GPU Cores', key: 'gpu_cores' },
         { label: 'RAM', key: 'ram_gb', unit: 'GB' },
+        { label: 'Neural Engine', key: 'neural_engine_cores', unit: ' Cores' },
         { label: 'Geekbench Multi', key: 'geekbench_multi' },
         { label: 'Geekbench Single', key: 'geekbench_single' },
+        { label: 'Base Storage', key: 'base_storage_gb', unit: 'GB' }
       ] 
     },
     { 
@@ -71,23 +73,33 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
       specs: [
         { label: 'Size', key: 'display_size_inches', unit: '"' },
         { label: 'Technology', key: 'display_tech' },
+        { label: 'Resolution', key: 'resolution' },
+        { label: 'Pixel Density', key: 'pixel_density_ppi', unit: ' ppi' },
         { label: 'Refresh Rate', key: 'refresh_rate_hz', unit: 'Hz' },
         { label: 'Peak Brightness', key: 'peak_brightness_nits', unit: ' nits' },
+        { label: 'Always-On', key: 'always_on_display' }
       ] 
     },
     { 
       id: 'Camera', 
       specs: [
         { label: 'Main Camera', key: 'main_camera_mp', unit: 'MP' },
+        { label: 'Aperture', key: 'main_aperture' },
+        { label: 'Ultrawide', key: 'ultrawide_mp', unit: 'MP' },
+        { label: 'Telephoto', key: 'telephoto_mp', unit: 'MP' },
         { label: 'Optical Zoom', key: 'optical_zoom_x', unit: 'x' },
         { label: 'Video', key: 'max_video_resolution' },
+        { label: 'ProRes', key: 'prores_support' },
+        { label: 'Front Camera', key: 'front_camera_mp', unit: 'MP' }
       ] 
     },
     { 
       id: 'Battery', 
       specs: [
         { label: 'Capacity', key: 'battery_mah', unit: ' mAh' },
+        { label: 'Video Playback', key: 'video_playback_hours', unit: ' hrs' },
         { label: 'Wired Charge', key: 'wired_charging_w', unit: 'W' },
+        { label: 'Wireless', key: 'magsafe_charging_w', unit: 'W' },
         { label: 'Connector', key: 'port_type' }
       ] 
     },
@@ -95,8 +107,18 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
       id: 'Design',
       specs: [
         { label: 'Weight', key: 'weight_grams', unit: 'g' },
+        { label: 'Thickness', key: 'thickness_mm', unit: 'mm' },
         { label: 'Material', key: 'frame_material' },
         { label: 'Water Resist', key: 'ip_rating' }
+      ]
+    },
+    {
+      id: 'Connectivity',
+      specs: [
+        { label: 'Network', key: 'cellular_tech' },
+        { label: 'Wi-Fi', key: 'wifi_standard' },
+        { label: 'Bluetooth', key: 'bluetooth_version' },
+        { label: 'SIM Support', key: 'sim_config' }
       ]
     }
   ];
@@ -110,7 +132,7 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
           {spotlightSpec && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSpotlightSpec(null)} className="absolute inset-0 bg-black/90 backdrop-blur-2xl" />
-              <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-white w-full max-w-5xl rounded-[3.5rem] p-10 shadow-2xl">
+              <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-white w-full max-w-5xl rounded-[3.5rem] p-10 shadow-2xl overflow-hidden">
                 <div className="flex justify-between items-start mb-12">
                   <div className="space-y-1">
                     <span className="text-blue-600 font-black text-[10px] uppercase tracking-[0.4em]">Historical Trend</span>
@@ -149,8 +171,9 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
           {categories.map((cat) => (
             <motion.div key={cat.id} layout className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden relative">
+              
               {/* STICKY CARD HEADER */}
-              <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-50 px-10 pt-8 pb-4">
+              <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-50 px-10 pt-8 pb-4">
                 <h3 className="text-xl font-black tracking-tighter mb-4 uppercase italic text-gray-300">
                   {cat.id}
                 </h3>
@@ -170,11 +193,16 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
                 {cat.specs.map((spec) => {
                   const hasHistory = !!HISTORY_DATA[spec.key];
                   return (
-                    <div key={spec.key} onClick={() => hasHistory && setSpotlightSpec(spec.key)} className={`relative ${hasHistory ? 'cursor-pointer group' : ''}`}>
+                    <div 
+                      key={spec.key} 
+                      onClick={() => hasHistory && setSpotlightSpec(spec.key)} 
+                      className={`relative ${hasHistory ? 'cursor-pointer group' : ''}`}
+                    >
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 whitespace-nowrap">
                         <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-gray-300 group-hover:text-blue-500 transition-colors">
                           {spec.label}
                         </span>
+                        {hasHistory && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
                       </div>
 
                       <div className="grid pt-2" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
