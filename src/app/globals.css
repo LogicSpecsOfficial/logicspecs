@@ -1,5 +1,6 @@
-// v1.4.0
-// Changelog: Migrated to Native CSS Media Queries to eliminate JS-based dark mode errors.
+/* v1.4.1 
+   Changelog: Deep Debug Repair: Replaced invalid double-slash comments with standard CSS block comments.
+*/
 
 @import "tailwindcss";
 
@@ -45,3 +46,30 @@
     border: 1px solid var(--border-subtle);
   }
 }
+
+/* Hardware Scrollbar Fixes */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.3);
+  border-radius: 20px;
+  border: 4px solid transparent;
+  background-clip: content-box;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::selection {
+  background-color: rgba(37, 99, 235, 0.2);
+  color: #2563eb;
+}
+
+/* Prevention Tip: Always use /* comment */ syntax in .css files to ensure compatibility with strict PostCSS parsers. */
