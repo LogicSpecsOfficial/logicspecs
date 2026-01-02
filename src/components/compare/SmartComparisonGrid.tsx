@@ -1,5 +1,5 @@
-/* v1.4.1 
-   Changelog: @ Stylist Update: Optimized box-model padding, fixed sticky Z-indexing, and implemented tabular-nums for data clarity.
+/* v1.4.2 
+   Changelog: # Deep Debug Repair: Removed duplicate React import at bottom to fix namespace collision.
 */
 
 'use client';
@@ -146,7 +146,7 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
           </motion.div>
         )}
 
-        {/* 2. SPEC SEARCH BAR - Adjusted Z-Index and Sticky Positioning */}
+        {/* 2. SPEC SEARCH BAR */}
         <div className="flex justify-center sticky top-24 z-50">
           <div className="relative w-full max-w-md px-4">
             <input 
@@ -159,9 +159,9 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
           </div>
         </div>
 
-        {/* 3. MAIN MATRIX GRID - Box Model Optimized */}
+        {/* 3. MAIN MATRIX GRID */}
         <div className="relative overflow-hidden rounded-[3rem] border border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0B] shadow-2xl">
-          <div className="overflow-x-auto scrollbar-hide">
+          <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left table-auto">
               <thead className="sticky top-0 z-40 bg-white/98 dark:bg-[#0A0A0B]/98 backdrop-blur-3xl border-b border-gray-100 dark:border-white/10">
                 <tr>
@@ -257,5 +257,3 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
     </LayoutGroup>
   );
 }
-
-import React from 'react';
