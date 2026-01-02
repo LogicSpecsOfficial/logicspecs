@@ -1,17 +1,51 @@
-@import "tailwindcss";
+/* Version: v1.0.0
+   Changelog: Initialized Tailwind directives with smooth scrolling and hardware-themed scrollbars.
+*/
 
-@theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-  --color-apple-bg: #fbfbfd;
-  --color-apple-text: #1d1d1f;
-  --color-apple-gray: #86868b;
-  --color-apple-blue: #0071e3;
-  --radius-apple: 2rem;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 29, 29, 31;
+  --background-start-rgb: 245, 245, 247;
+  --background-end-rgb: 255, 255, 255;
 }
 
-body {
-  background-color: var(--color-apple-bg);
-  color: var(--color-apple-text);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+/* Dark Mode Variable Overrides */
+.dark {
+  --foreground-rgb: 245, 245, 247;
+  --background-start-rgb: 10, 10, 11;
+  --background-end-rgb: 0, 0, 0;
+}
+
+@layer base {
+  body {
+    @apply bg-white dark:bg-[#0A0A0B] text-[#1D1D1F] dark:text-[#F5F5F7] antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  }
+}
+
+/* 2026 Custom Hardware Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-white/10 rounded-full border-4 border-transparent bg-clip-content hover:bg-gray-400 dark:hover:bg-white/20 transition-colors;
+}
+
+/* Smooth internal page transitions */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Optimized selection color for tech data readability */
+::selection {
+  @apply bg-blue-600/20 text-blue-600 dark:bg-blue-500/30 dark:text-blue-400;
 }
