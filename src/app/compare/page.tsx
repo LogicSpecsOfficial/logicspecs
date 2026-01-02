@@ -39,7 +39,6 @@ export default async function ComparePage({
           <p className="text-gray-400 font-medium text-lg">Technical Matrix — Local Memory Enabled</p>
         </div>
         
-        {/* NEW: Client-side Category Switcher with Memory */}
         <CategorySwitcher currentCategory={category} />
       </div>
 
