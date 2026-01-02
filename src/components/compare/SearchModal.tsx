@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Command } from 'cmdk'; // The magic library
+import { createPortal } from 'react-dom'; // Import Portal
+import { Command } from 'cmdk';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,54 +10,70 @@ interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (slug: string) => void;
-  category: string; // 'iPhone', 'Mac', etc.
+  category: string;
 }
 
 export default function SearchModal({ isOpen, onClose, onSelect, category }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // DEBOUNCED SEARCH EFFECT
+  // 1. Handle Portal Mounting (Prevents hydration mismatch)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 2. Debounced Search Logic
   useEffect(() => {
     const fetchResults = async () => {
-      if (query.length < 2) {
+      if (!query || query.length < 2) {
         setResults([]);
         return;
       }
 
       setLoading(true);
-      // Determine table based on category
+      
       const table = category === 'Mac' ? 'Macs' : 
                     category === 'iPad' ? 'iPads' : 
-                    category === 'Watch' ? 'Watches' : 'iPhones';
+                    category === 'Watch' ? 'Watches' : 
+                    'iPhones';
 
-      const { data } = await supabase
-        .from(table)
-        .select('model_name, slug, release_date')
-        .ilike('model_name', `%${query}%`) // Case-insensitive search
-        .limit(5);
+      try {
+        const { data, error } = await supabase
+          .from(table)
+          .select('model_name, slug, release_date')
+          .ilike('model_name', `%${query}%`)
+          .order('release_date', { ascending: false })
+          .limit(10);
 
-      setResults(data || []);
-      setLoading(false);
+        if (error) console.error('Supabase error:', error);
+        setResults(data || []);
+      } catch (err) {
+        console.error('Search failed:', err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Wait 300ms after typing stops before searching (saves DB calls)
     const timeoutId = setTimeout(fetchResults, 300);
     return () => clearTimeout(timeoutId);
   }, [query, category]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  // 3. Render via Portal (Fixes "Weird Appearance")
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4">
+      <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4 font-sans">
         
-        {/* Backdrop (Click to close) */}
+        {/* Dark Backdrop */}
         <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/40 backdrop-blur-md transition-all"
         />
 
         {/* The Search Box */}
@@ -64,41 +81,73 @@ export default function SearchModal({ isOpen, onClose, onSelect, category }: Sea
           initial={{ opacity: 0, scale: 0.95, y: 10 }} 
           animate={{ opacity: 1, scale: 1, y: 0 }} 
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-xl bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl overflow-hidden"
+          transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+          className="relative w-full max-w-xl bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl overflow-hidden"
         >
-          <Command className="w-full">
-            <div className="flex items-center border-b border-gray-200/50 px-4">
-              <span className="text-gray-400 mr-3">🔍</span>
+          {/* IMPORTANT: shouldFilter={false} fixes the "First Search Fails" bug */}
+          <Command shouldFilter={false} className="w-full">
+            
+            {/* Input Header */}
+            <div className="flex items-center border-b border-gray-200/50 px-5 py-4">
+              <span className="text-xl mr-4">🔍</span>
               <Command.Input 
                 autoFocus
-                placeholder={`Search ${category}...`}
+                placeholder={`Search ${category} (e.g. "Pro Max")...`}
                 value={query}
                 onValueChange={setQuery}
-                className="w-full py-4 bg-transparent outline-none text-lg font-medium placeholder-gray-400 text-gray-900"
+                className="w-full bg-transparent outline-none text-xl font-medium placeholder-gray-400 text-gray-900"
               />
+              <button 
+                onClick={onClose}
+                className="ml-2 text-xs font-bold uppercase text-gray-400 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-md transition-colors"
+              >
+                ESC
+              </button>
             </div>
 
-            <Command.List className="max-h-[300px] overflow-y-auto p-2">
-              {loading && <div className="p-4 text-center text-sm text-gray-400">Searching database...</div>}
+            {/* Results List */}
+            <Command.List className="max-h-[60vh] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-200">
+              
+              {loading && (
+                <div className="p-8 text-center text-gray-400 animate-pulse">
+                  Searching database...
+                </div>
+              )}
               
               {!loading && results.length === 0 && query.length > 1 && (
-                <div className="p-4 text-center text-sm text-gray-400">No devices found.</div>
+                <div className="p-8 text-center text-gray-400">
+                  No devices found matching "{query}".
+                </div>
+              )}
+
+              {/* Start Typing Prompt */}
+              {!loading && query.length < 2 && (
+                <div className="p-8 text-center text-gray-300 text-sm">
+                  Type at least 2 characters to search...
+                </div>
               )}
 
               {results.map((item) => (
                 <Command.Item
                   key={item.slug}
+                  value={item.slug} // Pass value for selection
                   onSelect={() => onSelect(item.slug)}
-                  className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer hover:bg-blue-50 transition-colors aria-selected:bg-blue-50 group"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer hover:bg-blue-50 hover:scale-[0.99] transition-all duration-200 aria-selected:bg-blue-50 group mb-1"
                 >
-                  <span className="font-semibold text-gray-800">{item.model_name}</span>
-                  <span className="text-xs text-gray-400 font-mono group-hover:text-blue-500 transition-colors">{item.release_date}</span>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-gray-800 text-lg">{item.model_name}</span>
+                    <span className="text-xs text-gray-400 font-mono mt-0.5">{item.release_date || 'Unknown Date'}</span>
+                  </div>
+                  <span className="opacity-0 group-hover:opacity-100 text-blue-600 text-sm font-bold transition-opacity">
+                    Select →
+                  </span>
                 </Command.Item>
               ))}
             </Command.List>
           </Command>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body // This renders the modal at the very top of your HTML
   );
 }
