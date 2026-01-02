@@ -11,8 +11,12 @@ const springTransition = {
   mass: 1 
 };
 
-export default function SmartComparisonGrid({ left, right }: { left: any, right: any }) {
+export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
   const [focusedCategory, setFocusedCategory] = useState<SpecCategory | null>(null);
+
+  // Dynamic Grid Columns based on device count
+  // If 0 devices, show 1 col. If 5 devices, show 5 cols.
+  const gridCols = devices.length > 0 ? devices.length : 1;
 
   const categories: { id: SpecCategory; specs: { label: string; key: string; unit?: string }[] }[] = [
     {
@@ -48,10 +52,16 @@ export default function SmartComparisonGrid({ left, right }: { left: any, right:
     }
   ];
 
+  if (devices.length === 0) return (
+    <div className="text-center py-20 text-gray-400">Select a device to start comparing.</div>
+  );
+
   return (
     <LayoutGroup>
-      <div className="w-full max-w-6xl mx-auto space-y-6">
-        <div className="flex gap-2 justify-center mb-10">
+      <div className="w-full space-y-6">
+        
+        {/* Category Tabs */}
+        <div className="flex gap-2 justify-center mb-10 flex-wrap">
           <button 
             onClick={() => setFocusedCategory(null)}
             className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${!focusedCategory ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'}`}
@@ -69,6 +79,7 @@ export default function SmartComparisonGrid({ left, right }: { left: any, right:
           ))}
         </div>
 
+        {/* The Grid */}
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <AnimatePresence mode="popLayout">
             {categories.map((cat) => {
@@ -93,19 +104,28 @@ export default function SmartComparisonGrid({ left, right }: { left: any, right:
                     <h3 className="text-xl font-bold tracking-tight text-gray-900">{cat.id}</h3>
                     {isFocused && <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Active</span>}
                   </div>
-                  <div className="p-8 grid gap-8">
+                  
+                  <div className="p-8 grid gap-10">
                     {cat.specs.map((spec) => (
                       <div key={spec.key} className="relative">
-                        <span className="absolute left-1/2 -translate-x-1/2 text-xs font-black uppercase tracking-widest text-gray-300 bg-gray-50 px-2 rounded-full">
+                         {/* Centered Label */}
+                        <div className="absolute -top-3 left-0 text-[10px] font-black uppercase tracking-widest text-gray-400">
                           {spec.label}
-                        </span>
-                        <div className="flex justify-between items-center pt-2">
-                           <div className="w-1/2 text-center pr-4 border-r border-gray-100">
-                             <span className="text-2xl font-semibold text-gray-800">{left?.[spec.key] || '—'} <span className="text-sm text-gray-400">{spec.unit}</span></span>
-                           </div>
-                           <div className="w-1/2 text-center pl-4">
-                             <span className="text-2xl font-semibold text-gray-800">{right?.[spec.key] || '—'} <span className="text-sm text-gray-400">{spec.unit}</span></span>
-                           </div>
+                        </div>
+                        
+                        {/* Dynamic Column Grid for Values */}
+                        <div 
+                           className="grid gap-4 pt-2"
+                           style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
+                        >
+                           {devices.map((device, idx) => (
+                             <div key={device.slug || idx} className={`text-center ${idx < devices.length - 1 ? 'border-r border-gray-100' : ''}`}>
+                               <span className="text-xl md:text-2xl font-semibold text-gray-800 block truncate">
+                                 {device[spec.key] || '—'}
+                                 <span className="text-xs text-gray-400 ml-1 font-normal">{spec.unit}</span>
+                               </span>
+                             </div>
+                           ))}
                         </div>
                       </div>
                     ))}
