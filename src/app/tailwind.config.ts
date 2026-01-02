@@ -1,33 +1,24 @@
-/* Version: v1.1.0
-   Changelog: Explicitly defined content paths to ensure Turbopack correctly scans for utility classes.
+/* Version: v1.2.0
+   Changelog: Simplified config to act as fallback for Next.js 16 / Tailwind v4.
 */
 
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  // We keep this for dark mode strategy, but variables move to globals.css
   darkMode: "class",
-  // Standardizing content paths for Next.js 16 Turbopack
   content: [
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,mdx}", // Broadest possible scan to prevent style purging
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-      },
+      // Fallback extensions if v4 engine misses them
       colors: {
         brand: {
           blue: "#2563eb",
-          light: "#F5F5F7",
-          dark: "#0A0A0B",
+          light: "#f5f5f7",
+          dark: "#0a0a0b",
         },
-      },
-      borderRadius: {
-        "3xl": "1.5rem",
-        "4xl": "2rem",
-        "5xl": "2.5rem",
       },
     },
   },
