@@ -1,13 +1,17 @@
-@layer utilities {
-  .liquid-glass {
-    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)];
-  }
-  
-  .liquid-glass-dark {
-    @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)];
-  }
+@import "tailwindcss";
 
-  .bento-grid {
-    @apply grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-[minmax(100px,auto)];
-  }
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --color-apple-bg: #fbfbfd;
+  --color-apple-text: #1d1d1f;
+  --color-apple-gray: #86868b;
+  --color-apple-blue: #0071e3;
+  --radius-apple: 2rem;
+}
+
+body {
+  background-color: var(--color-apple-bg);
+  color: var(--color-apple-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }

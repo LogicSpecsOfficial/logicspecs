@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
-import ComparisonMatrix from '@/components/compare/ComparisonMatrix';
+import SmartComparisonGrid from '@/components/compare/SmartComparisonGrid'; // Updated Import
 import DeviceSelector from '@/components/compare/DeviceSelector';
 import Link from 'next/link';
 
@@ -17,12 +17,11 @@ export default async function ComparePage({
   searchParams: Promise<{ left?: string; right?: string; category?: string }>;
 }) {
   const params = await searchParams;
-  const leftSlug = params.left || ''; // e.g. 'iphone-13'
-  const rightSlug = params.right || ''; // e.g. 'iphone-15-pro'
+  const leftSlug = params.left || '';
+  const rightSlug = params.right || '';
   const category = params.category || 'iPhone';
   const table = category === 'Mac' ? 'Macs' : category === 'iPad' ? 'iPads' : 'iPhones';
 
-  // Parallel Data Fetching
   const [leftDevice, rightDevice] = await Promise.all([
     getDevice(leftSlug, table),
     getDevice(rightSlug, table)
@@ -31,7 +30,7 @@ export default async function ComparePage({
   return (
     <main className="min-h-screen bg-[#F5F5F7] pt-24 pb-20">
       
-      {/* HEADER: The "Control Tower" */}
+      {/* HEADER */}
       <div className="max-w-7xl mx-auto px-6 mb-12 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-[#1D1D1F]">
@@ -42,7 +41,6 @@ export default async function ComparePage({
           </p>
         </div>
         
-        {/* Category Switcher Pill */}
         <div className="flex bg-white/50 backdrop-blur-md p-1 rounded-full border border-gray-200/50">
           {['iPhone', 'iPad', 'Mac', 'Watch'].map((cat) => (
             <Link
@@ -60,17 +58,17 @@ export default async function ComparePage({
         </div>
       </div>
 
-      {/* THE COMPARISON STAGE */}
+      {/* COMPARISON STAGE */}
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 gap-4 md:gap-12 mb-8 sticky top-24 z-30 bg-[#F5F5F7]/95 backdrop-blur-sm py-4 border-b border-gray-200/50">
-           {/* Device Selectors (Client Component) */}
+           {/* Selectors */}
            <DeviceSelector side="left" device={leftDevice} category={category} />
            <DeviceSelector side="right" device={rightDevice} category={category} />
         </div>
 
-        {/* The Matrix (Data Grid) */}
+        {/* The New Smart Grid */}
         <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-3xl" />}>
-           <ComparisonMatrix left={leftDevice} right={rightDevice} category={category} />
+           <SmartComparisonGrid left={leftDevice} right={rightDevice} />
         </Suspense>
       </div>
 
