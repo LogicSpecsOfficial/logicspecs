@@ -1,34 +1,76 @@
-import './globals.css'
-import Link from 'next/link'
+/* Version: v1.2.0
+   Changelog: Integrated Global Header, optimized font loading for zero CLS, and fixed stacking context for floating UI.
+*/
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+import Header from "@/components/shared/Header";
+import "./globals.css";
+
+// 2026 Font Optimization: Using variable font for performance
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
+export const metadata: Metadata = {
+  title: "LogicSpecs | The Definitive Apple Hardware Matrix",
+  description: "Advanced technical database and comparison engine for the Apple ecosystem. 15+ years of specs, benchmarks, and evolution tracking.",
+  keywords: ["iPhone specs", "Mac benchmarks", "Apple hardware database", "iPhone comparison matrix"],
+  authors: [{ name: "LogicSpecs Team" }],
+  robots: "index, follow",
+};
+
+// 2026 AEO Check: Defining viewport for mobile-first AI indexing
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#ffffff',
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <body className="antialiased">
-        {/* The Floating Nav - Stays on top (z-50) */}
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-[100]">
-          <nav className="h-14 bg-white/70 backdrop-blur-3xl border border-white/20 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex items-center justify-between px-10">
-            <Link href="/" className="font-black text-xl tracking-tighter italic uppercase">
-              Logic<span className="text-apple-blue">Specs</span>
-            </Link>
-            
-            <div className="hidden lg:flex gap-10 text-[10px] font-bold uppercase tracking-[0.2em] text-apple-gray-400">
-              <Link href="/finder" className="hover:text-black">Finder</Link>
-              <Link href="/benchmarks" className="hover:text-black">Benchmarks</Link>
-              <Link href="/rumors" className="hover:text-red-500">Rumors</Link>
+    <html lang="en" className="scroll-smooth">
+      <body
+        className={`${inter.variable} font-sans antialiased bg-[#F5F5F7] text-[#1D1D1F] selection:bg-blue-600 selection:text-white`}
+      >
+        {/* GLOBAL NAVIGATION 
+          Placed at the root to enable persistence across page transitions 
+        */}
+        <Header />
+
+        {/* MAIN CONTENT AREA 
+          The pt-24 ensures content starts below the floating header 
+        */}
+        <div className="relative min-h-screen flex flex-col">
+          <main className="flex-grow">
+            {children}
+          </main>
+          
+          {/* FOOTER 
+            Minimalist 2026 footer for AEO link crawling 
+          */}
+          <footer className="py-12 px-6 border-t border-gray-200 bg-white/50 backdrop-blur-md">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-black rounded-lg flex items-center justify-center">
+                  <span className="text-[10px] text-white font-black">L</span>
+                </div>
+                <span className="text-sm font-black uppercase tracking-tighter italic">LogicSpecs</span>
+              </div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                © 2026 LogicSpecs Database. Hardware data is provided for informational purposes.
+              </p>
             </div>
-
-            <button className="bg-apple-gray-900 text-white px-6 h-8 rounded-full text-[10px] font-bold uppercase">
-              Search
-            </button>
-          </nav>
-        </div>
-
-        {/* Content Wrapper - Added padding-top (pt-32) so content starts below the nav */}
-        <div className="pt-32">
-          {children}
+          </footer>
         </div>
       </body>
     </html>
-  )
+  );
 }
