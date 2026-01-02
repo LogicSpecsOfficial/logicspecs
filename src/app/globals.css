@@ -1,22 +1,13 @@
-@import "tailwindcss";
-
-@theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+@layer utilities {
+  .liquid-glass {
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)];
+  }
   
-  /* Define our custom Apple colors in the v4 theme block */
-  --color-apple-bg: #fbfbfd;
-  --color-apple-text: #1d1d1f;
-  --color-apple-gray: #86868b;
-  --color-apple-blue: #0071e3;
-  
-  /* Define the "Squircle" radius */
-  --radius-apple: 2rem;
-}
+  .liquid-glass-dark {
+    @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)];
+  }
 
-/* Base styles to ensure the font looks premium */
-body {
-  background-color: var(--color-apple-bg);
-  color: var(--color-apple-text);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+  .bento-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-[minmax(100px,auto)];
+  }
 }
