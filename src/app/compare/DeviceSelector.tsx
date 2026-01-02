@@ -11,7 +11,7 @@ export default function DeviceSelector({ side, device, category }: { side: 'left
     const newSlug = e.target.value; 
     
     // Construct new URL
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     params.set(side, newSlug);
     
     // Smooth update without full reload
@@ -19,12 +19,12 @@ export default function DeviceSelector({ side, device, category }: { side: 'left
   };
 
   return (
-    <div className="liquid-glass rounded-[2rem] p-6 text-center relative group min-h-[160px] flex flex-col justify-center items-center cursor-pointer hover:bg-white/80 transition-all">
+    <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-lg rounded-[2rem] p-6 text-center relative group min-h-[160px] flex flex-col justify-center items-center cursor-pointer hover:bg-white/80 transition-all">
       
       {device ? (
         <>
           <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">{side === 'left' ? 'Device A' : 'Device B'}</div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tighter leading-none mb-2">{device.model_name}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tighter leading-none mb-2 text-[#1d1d1f]">{device.model_name}</h2>
           <p className="text-gray-400 font-medium text-sm">{device.release_date}</p>
           
           <button className="mt-4 text-[10px] bg-gray-100 hover:bg-black hover:text-white px-4 py-2 rounded-full font-bold uppercase transition-colors">
