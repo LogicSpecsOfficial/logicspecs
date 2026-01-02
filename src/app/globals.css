@@ -1,14 +1,13 @@
-/* Version: v1.2.0
-   Changelog: Migrated to Tailwind v4 unified import to fix disappearing styles.
+/* Version: v1.3.0
+   Changelog: Corrected Tailwind v4 theme mapping for .dark class synchronization.
 */
 
-/* 1. Unified Tailwind v4 Import - This replaces @tailwind base/components/utilities */
 @import "tailwindcss";
 
-/* 2. Standard Theme Variables */
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   
+  /* LogicSpecs 2026 Palette */
   --color-brand-blue: #2563eb;
   --color-brand-light: #f5f5f7;
   --color-brand-dark: #0a0a0b;
@@ -18,41 +17,30 @@
   --radius-5xl: 2.5rem;
 }
 
-/* 3. Global Base Styles */
+/* Ensure Tailwind v4 respects the .dark class manually added to <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
-  html {
-    scroll-behavior: smooth;
-    -webkit-tap-highlight-color: transparent;
-  }
-
   body {
-    background-color: white;
-    color: #1d1d1f;
-    @apply antialiased transition-colors duration-500;
+    @apply bg-white text-[#1D1D1F] antialiased transition-colors duration-500;
   }
 
+  /* Force background/text via class selector to bypass hydration delays */
   .dark body {
-    background-color: #0a0a0b;
-    color: #f5f5f7;
+    background-color: #0A0A0B !important;
+    color: #f5f5f7 !important;
   }
 }
 
-/* 4. Utility Overrides */
 @layer utilities {
   .glass-morphism {
     @apply bg-white/60 dark:bg-black/60 backdrop-blur-md border border-white/20 dark:border-white/10;
   }
 }
 
-/* 5. Hardware Scrollbar (Native CSS) */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+/* Hardware Scrollbars */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: rgba(150, 150, 150, 0.3);
   border-radius: 20px;
@@ -62,9 +50,4 @@
 
 .dark ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
-}
-
-::selection {
-  background-color: rgba(37, 99, 235, 0.2);
-  color: #2563eb;
 }
