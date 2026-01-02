@@ -13,7 +13,6 @@ const springTransition = {
   mass: 1 
 };
 
-// --- DATA: HISTORICAL TRENDS ---
 const HISTORY_DATA: Record<string, { year: string; val: number; model: string }[]> = {
   ram_gb: [
     { year: '2012', val: 1, model: 'iPhone 5' },
@@ -149,23 +148,25 @@ export default function SmartComparisonGrid({ devices }: { devices: any[] }) {
         {/* MAIN MATRIX */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
           {categories.map((cat) => (
-            <motion.div key={cat.id} layout className="bg-white rounded-[3rem] p-10 border border-gray-100 shadow-sm overflow-hidden">
-              <h3 className="text-xl font-black tracking-tighter mb-8 uppercase italic text-gray-300 border-b border-gray-50 pb-4">
-                {cat.id}
-              </h3>
-              
-              {/* THE FIX: Device Names Header for each category block */}
-              <div className="grid mb-10 pb-4 border-b border-gray-50" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
-                {devices.map((device, idx) => (
-                  <div key={idx} className="text-center px-1">
-                    <span className="text-[9px] font-black uppercase tracking-tighter text-blue-600 block line-clamp-2 leading-none">
-                      {device.model_name}
-                    </span>
-                  </div>
-                ))}
+            <motion.div key={cat.id} layout className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden relative">
+              {/* STICKY CARD HEADER */}
+              <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-50 px-10 pt-8 pb-4">
+                <h3 className="text-xl font-black tracking-tighter mb-4 uppercase italic text-gray-300">
+                  {cat.id}
+                </h3>
+                
+                <div className="grid" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
+                  {devices.map((device, idx) => (
+                    <div key={idx} className="text-center px-1">
+                      <span className="text-[9px] font-black uppercase tracking-tighter text-blue-600 block line-clamp-2 leading-none">
+                        {device.model_name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="space-y-12">
+              <div className="p-10 pt-12 space-y-12">
                 {cat.specs.map((spec) => {
                   const hasHistory = !!HISTORY_DATA[spec.key];
                   return (
