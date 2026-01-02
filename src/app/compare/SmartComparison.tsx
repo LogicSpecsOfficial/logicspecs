@@ -4,7 +4,13 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
 type SpecCategory = 'Performance' | 'Display' | 'Camera' | 'Battery';
 
-const springTransition = { type: "spring", stiffness: 300, damping: 30, mass: 1 };
+// FIX: Added "as const" to satisfy TypeScript
+const springTransition = { 
+  type: "spring" as const, 
+  stiffness: 300, 
+  damping: 30, 
+  mass: 1 
+};
 
 export default function SmartComparisonGrid({ left, right }: { left: any, right: any }) {
   const [focusedCategory, setFocusedCategory] = useState<SpecCategory | null>(null);
