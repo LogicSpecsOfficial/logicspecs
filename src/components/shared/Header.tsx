@@ -1,5 +1,6 @@
-// v1.4.0
-// Changelog: Removed manual theme toggle in favor of Auto-Immersion; cleaned up UI for 2026 aesthetics.
+/* v1.5.0 
+   Changelog: @ Stylist Update: Boosted contrast for nav text and logo to fix "Grey on Dark" readability.
+*/
 
 'use client';
 
@@ -31,29 +32,30 @@ export default function Header() {
         `}
       >
         <Link href="/" className="px-4 py-2 flex items-center gap-2 group">
-          <div className="w-5 h-5 bg-black dark:bg-white rounded-md flex items-center justify-center">
+          {/* Logo contrast boost */}
+          <div className="w-5 h-5 bg-black dark:bg-white rounded-md flex items-center justify-center transition-colors">
             <span className="text-[8px] text-white dark:text-black font-black italic">L</span>
           </div>
-          <span className="text-xs font-black uppercase tracking-tighter">LogicSpecs</span>
+          <span className="text-xs font-black uppercase tracking-tighter text-nav">LogicSpecs</span>
         </Link>
 
         <div className="flex-1 flex justify-center gap-2">
           {[{ name: 'Finder', path: '/finder' }, { name: 'Matrix', path: '/compare' }].map((item) => {
             const isActive = pathname === item.path;
             return (
-              <Link key={item.path} href={item.path} className="relative px-5 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500 hover:text-current">
+              <Link key={item.path} href={item.path} className="relative px-5 py-2 text-[10px] font-bold uppercase tracking-[0.15em] text-nav hover:text-blue-500 transition-colors">
                 {isActive && (
                   <motion.div layoutId="nav-glow" className="absolute inset-0 bg-black/5 dark:bg-white/10 rounded-full -z-10" />
                 )}
-                <span className={isActive ? 'text-current' : ''}>{item.name}</span>
+                <span className={isActive ? 'text-blue-600 dark:text-blue-400' : ''}>{item.name}</span>
               </Link>
             );
           })}
         </div>
 
         <button className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-black/5 dark:bg-white/5 rounded-full border border-transparent hover:border-blue-500/50 transition-all">
-          <span className="text-[8px] font-black opacity-40 uppercase tracking-widest">Search</span>
-          <kbd className="text-[9px] font-sans opacity-30">⌘K</kbd>
+          <span className="text-[8px] font-black text-nav opacity-60 uppercase tracking-widest">Search</span>
+          <kbd className="text-[9px] font-sans text-nav opacity-40">⌘K</kbd>
         </button>
       </motion.nav>
     </header>
