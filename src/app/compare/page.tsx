@@ -1,3 +1,7 @@
+/* v1.5.1 
+   Changelog: @ Stylist Update: Unified theme sync for Matrix; replaced bg-white selector with glass-morphism.
+*/
+
 import { Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
 import SmartComparisonGrid from '@/components/compare/SmartComparisonGrid';
@@ -30,21 +34,25 @@ export default async function ComparePage({
   if (slots.length < 5) slots.push(null);
 
   return (
-    <main className="min-h-screen bg-[#F5F5F7] pt-24 pb-40 font-sans">
+    /* Removed bg-[#F5F5F7] to allow global CSS variable to take over */
+    <main className="min-h-screen pt-24 pb-40 font-sans">
       <div className="max-w-[1800px] mx-auto px-6 mb-16 flex flex-col md:flex-row justify-between items-end gap-8">
         <div className="space-y-2">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-[#1D1D1F]">
+          {/* Replaced hardcoded text color with current/variable inheritance */}
+          <h1 className="text-5xl md:text-7xl font-black tracking-tighter">
             {category}<span className="text-blue-600">.</span>
           </h1>
-          <p className="text-gray-400 font-medium text-lg">Technical Matrix — Local Memory Enabled</p>
+          <p className="text-subtle font-medium text-lg">Technical Matrix — Local Memory Enabled</p>
         </div>
         
         <CategorySwitcher currentCategory={category} />
       </div>
 
       <div className="max-w-[1800px] mx-auto px-6">
-        <div className="sticky top-6 z-50 mb-12">
-          <div className="bg-white/70 backdrop-blur-2xl rounded-[3rem] p-4 border border-white/50 shadow-2xl">
+        {/* Adjusted Sticky Z-Index to stay below Search but above Grid */}
+        <div className="sticky top-6 z-40 mb-12">
+          {/* Replaced bg-white/70 with glass-morphism utility */}
+          <div className="glass-morphism rounded-[3rem] p-4 shadow-2xl">
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                {slots.map((device: any, index: number) => (
                  <div key={device ? device.slug : `empty-${index}`} className="min-w-[220px] flex-1">
@@ -60,7 +68,7 @@ export default async function ComparePage({
           </div>
         </div>
 
-        <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-[3rem]" />}>
+        <Suspense fallback={<div className="h-96 glass-morphism animate-pulse rounded-[3rem]" />}>
            <SmartComparisonGrid devices={devices} />
         </Suspense>
       </div>
