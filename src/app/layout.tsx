@@ -1,12 +1,12 @@
-/* Version: v1.4.0
-   Changelog: Added inline Head Script for zero-flash dark mode and fixed hydration mismatch.
-*/
+// v1.4.1
+// Changelog: Deep Debug Repair: Switched to relative pathing for ThemeProvider and verified SVG-only icon strategy.
 
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import Header from "@/components/shared/Header";
-import CommandK from "@/components/shared/CommandK";
-import { ThemeProvider } from "@/components/shared/ThemeProvider";
+// Using relative pathing to resolve Turbopack alias drift
+import Header from "../components/shared/Header";
+import CommandK from "../components/shared/CommandK";
+import { ThemeProvider } from "../components/shared/ThemeProvider";
 import "./globals.css";
 
 const inter = Inter({ 
@@ -35,7 +35,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* 2026 Zero-Flash Script: Runs before React Hydration */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -55,11 +54,13 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} font-sans antialiased bg-white dark:bg-black text-[#1D1D1F] dark:text-[#F5F5F7] transition-colors duration-500`}
+        className={`${inter.variable} font-sans antialiased bg-white dark:bg-[#0A0A0B] text-[#1D1D1F] dark:text-[#F5F5F7] transition-colors duration-500`}
       >
         <ThemeProvider>
+          {/* Header and CommandK are now SVG-only, removing lucide-react dependency */}
           <Header />
           <CommandK />
+          
           <div className="relative min-h-screen flex flex-col">
             <main className="flex-grow">
               {children}
@@ -74,7 +75,7 @@ export default function RootLayout({
                   <span className="text-sm font-black uppercase tracking-tighter italic">LogicSpecs</span>
                 </div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  © 2026 LogicSpecs Database. Dark Mode Architecture: 1.4.0
+                  © 2026 LogicSpecs Database. Hardware Revision: 1.4.1
                 </p>
               </div>
             </footer>
@@ -84,3 +85,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+// Prevention Tip: When Turbopack fails to resolve aliases (@/), fallback to relative paths (../) to confirm file existence.
