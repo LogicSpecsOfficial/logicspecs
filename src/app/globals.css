@@ -1,28 +1,36 @@
-/* Version: v1.0.0
-   Changelog: Initialized Tailwind directives with smooth scrolling and hardware-themed scrollbars.
+/* Version: v1.1.0
+   Changelog: Fixed unknown utility class error by standardizing Tailwind directives and variable definitions.
 */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 29, 29, 31;
-  --background-start-rgb: 245, 245, 247;
-  --background-end-rgb: 255, 255, 255;
-}
-
-/* Dark Mode Variable Overrides */
-.dark {
-  --foreground-rgb: 245, 245, 247;
-  --background-start-rgb: 10, 10, 11;
-  --background-end-rgb: 0, 0, 0;
-}
-
+/* 2026 Theme Variable Definitions */
 @layer base {
+  :root {
+    --foreground-rgb: 29, 29, 31;
+    --background-start-rgb: 245, 245, 247;
+    --background-end-rgb: 255, 255, 255;
+  }
+
+  .dark {
+    --foreground-rgb: 245, 245, 247;
+    --background-start-rgb: 10, 10, 11;
+    --background-end-rgb: 0, 0, 0;
+  }
+
   body {
-    @apply bg-white dark:bg-[#0A0A0B] text-[#1D1D1F] dark:text-[#F5F5F7] antialiased;
-    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+    /* Using standard CSS variables to avoid @apply timing issues in Turbopack */
+    background-color: rgb(var(--background-end-rgb));
+    color: rgb(var(--foreground-rgb));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .dark body {
+    background-color: #0A0A0B;
+    color: #F5F5F7;
   }
 }
 
@@ -32,20 +40,26 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-white/10 rounded-full border-4 border-transparent bg-clip-content hover:bg-gray-400 dark:hover:bg-white/20 transition-colors;
+  background: rgba(150, 150, 150, 0.3);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
-/* Smooth internal page transitions */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth page transitions */
 html {
   scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent;
 }
 
-/* Optimized selection color for tech data readability */
 ::selection {
-  @apply bg-blue-600/20 text-blue-600 dark:bg-blue-500/30 dark:text-blue-400;
+  background-color: rgba(37, 99, 235, 0.2);
+  color: #2563eb;
 }
