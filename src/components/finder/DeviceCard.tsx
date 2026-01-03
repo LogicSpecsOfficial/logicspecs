@@ -1,87 +1,56 @@
-'use client';
+/* v1.5.3 
+   Changelog: @ Stylist Update: Converted card to glass-morphism and semantic text variables.
+*/
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-export default function DeviceCard({ device, category }: { device: any, category: string }) {
-  const [isSelected, setIsSelected] = useState(false);
-
-  // Sync with localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem(`compare_mem_${category}`) || '';
-    setIsSelected(saved.split(',').includes(device.slug));
-  }, [device.slug, category]);
-
-  const toggleCompare = () => {
-    const saved = localStorage.getItem(`compare_mem_${category}`) || '';
-    let slugs = saved ? saved.split(',') : [];
-
-    if (slugs.includes(device.slug)) {
-      slugs = slugs.filter(s => s !== device.slug);
-      setIsSelected(false);
-    } else {
-      if (slugs.length >= 5) {
-        alert("Max 5 devices allowed");
-        return;
-      }
-      slugs.push(device.slug);
-      setIsSelected(true);
-    }
-    localStorage.setItem(`compare_mem_${category}`, slugs.join(','));
-    // Trigger a storage event so the floating bar updates
-    window.dispatchEvent(new Event('storage'));
-  };
-
+export default function DeviceCard({ device }: { device: any }) {
   return (
-    <motion.div 
-      layout
-      className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all group"
-    >
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h3 className="text-xl font-bold tracking-tight text-gray-900">{device.model_name}</h3>
-          <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-1">
-            {device.chip_name}
+    <Link href={`/device/${device.slug}`}>
+      <div className="group relative h-full glass-morphism rounded-[2.5rem] p-6 hover:shadow-2xl hover:border-blue-500/50 transition-all duration-500 overflow-hidden flex flex-col">
+        
+        {/* Hardware Image Container */}
+        <div className="aspect-square rounded-3xl bg-black/[0.03] dark:bg-white/[0.03] mb-6 overflow-hidden flex items-center justify-center p-8">
+          <img 
+            src={device.image_url} 
+            alt={device.model_name}
+            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-out" 
+          />
+        </div>
+
+        {/* Technical Labeling */}
+        <div className="space-y-3 flex-grow">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+              {device.chip_name}
+            </span>
+            <span className="text-[10px] font-bold text-[var(--text-secondary)] opacity-60">
+              {new Date(device.release_date).getFullYear()}
+            </span>
+          </div>
+          
+          <h3 className="text-xl font-black tracking-tighter text-[var(--text-primary)] leading-none">
+            {device.model_name}
+          </h3>
+          
+          <p className="text-[11px] font-medium text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
+            {device.cpu_cores} Core CPU • {device.ram_gb}GB Base Memory
           </p>
         </div>
-        <button 
-          onClick={toggleCompare}
-          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-            isSelected ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
-          }`}
-        >
-          {isSelected ? '✓' : '+'}
-        </button>
-      </div>
 
-      <div className="space-y-3 mb-8">
-        <div className="flex justify-between text-xs">
-          <span className="text-gray-400 font-medium">Multi-Core</span>
-          <span className="font-bold text-gray-900">{device.geekbench_multi || '—'}</span>
+        {/* Contextual Action Button */}
+        <div className="mt-6 flex items-center justify-between">
+          <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+            View Matrix →
+          </span>
+          <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+            <span className="text-xs">→</span>
+          </div>
         </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-gray-400 font-medium">Display</span>
-          <span className="font-bold text-gray-900">{device.display_size_inches}" {device.display_tech}</span>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link 
-          href={`/device/${device.slug}`}
-          className="py-3 rounded-2xl bg-gray-50 text-[10px] font-black uppercase text-center hover:bg-black hover:text-white transition-all"
-        >
-          Details
-        </Link>
-        <button 
-          onClick={toggleCompare}
-          className={`py-3 rounded-2xl text-[10px] font-black uppercase border transition-all ${
-            isSelected ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-gray-100 text-gray-400 hover:border-black hover:text-black'
-          }`}
-        >
-          {isSelected ? 'Selected' : 'Compare'}
-        </button>
+        {/* Subtle Glow Effect for Dark Mode */}
+        <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-blue-600/5 rounded-full blur-3xl group-hover:bg-blue-600/10 transition-all pointer-events-none" />
       </div>
-    </motion.div>
+    </Link>
   );
 }
